@@ -1,0 +1,249 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // True only for a logged-in user.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // In v1 the shop id IS the owner's uid, so ownership is a path check.
+    function isShopOwner(shopId) {
+      return isSignedIn() && request.auth.uid == shopId;
+    }
+
+    function orderPath(shopId, orderId) {
+      return /databases/$(database)/documents/shops/$(shopId)/orders/$(orderId);
+    }
+
+    function paymentPath(shopId, paymentId) {
+      return /databases/$(database)/documents/shops/$(shopId)/payments/$(paymentId);
+    }
+
+    // The exact shape a customer document must have.
+    function isValidCustomer(data) {
+      return data.keys().hasOnly([
+               'name', 'nameLower', 'phone', 'phoneNormalized',
+               'address', 'notes', 'isArchived', 'createdAt', 'updatedAt'
+             ])
+          && data.name is string
+          && data.name.size() > 0 && data.name.size() <= 100
+          && data.nameLower is string
+          && data.phone is string && data.phone.size() <= 30
+          && data.phoneNormalized is string
+          && data.address is string && data.address.size() <= 300
+          && data.notes is string && data.notes.size() <= 1000
+          && data.isArchived is bool
+          && data.createdAt is timestamp
+          && data.updatedAt is timestamp;
+    }
+
+    // The exact shape a measurement set must have.
+    function isValidMeasurement(data) {
+      return data.keys().hasOnly([
+               'customerId', 'garmentType', 'label', 'values',
+               'styles', 'notes', 'createdAt', 'updatedAt'
+             ])
+          && data.customerId is string && data.customerId.size() > 0
+          && data.garmentType in ['shirt_kurta', 'shalwar_trouser', 'waistcoat']
+          && data.label is string && data.label.size() <= 60
+          && data['values'] is map
+          && data['values'].size() > 0 && data['values'].size() <= 20
+          && data.styles is map && data.styles.size() <= 10
+          && data.notes is string && data.notes.size() <= 1000
+          && data.createdAt is timestamp
+          && data.updatedAt is timestamp;
+    }
+
+    // The exact shape an order must have, including the money rules.
+    function isValidOrder(data) {
+      return data.keys().hasOnly([
+               'customerId', 'orderNumber', 'items', 'measurements',
+               'totalAmount', 'totalPaid', 'remainingAmount',
+               'paymentStatus', 'status', 'orderDate', 'deliveryDate',
+               'notes', 'lastPaymentId', 'createdAt', 'updatedAt'
+             ])
+          && data.customerId is string && data.customerId.size() > 0
+          && data.orderNumber is int && data.orderNumber >= 1
+          && data['items'] is list
+          && data['items'].size() >= 1 && data['items'].size() <= 30
+          && data['measurements'] is list
+          && data['measurements'].size() <= 10
+          && data.totalAmount is int && data.totalAmount > 0
+          && data.totalPaid is int && data.totalPaid >= 0
+          && data.totalPaid <= data.totalAmount
+          && data.remainingAmount == data.totalAmount - data.totalPaid
+          && data.paymentStatus in ['unpaid', 'partial', 'paid']
+          && data.status in ['booked', 'cutting', 'stitching', 'ready',
+                             'delivered', 'cancelled']
+          && (!data.keys().hasAny(['lastPaymentId'])
+              || data.lastPaymentId is string)
+          && data.orderDate is timestamp
+          && data.deliveryDate is timestamp
+          && data.deliveryDate >= data.orderDate
+          && data.notes is string && data.notes.size() <= 1000
+          && data.createdAt is timestamp
+          && data.updatedAt is timestamp;
+    }
+
+    // The exact shape a payment must have.
+    function isValidPayment(data) {
+      return data.keys().hasOnly([
+               'orderId', 'customerId', 'amount', 'method', 'note',
+               'paidAt', 'isVoided', 'voidedAt', 'createdAt'
+             ])
+          && data.orderId is string && data.orderId.size() > 0
+          && data.customerId is string && data.customerId.size() > 0
+          && data.amount is int && data.amount > 0
+          && data.method in ['cash', 'bank', 'other']
+          && data.note is string && data.note.size() <= 200
+          && data.paidAt is timestamp
+          && data.isVoided is bool
+          && data.createdAt is timestamp;
+    }
+
+    // An order created together with an advance payment (same batch):
+    // the payment must exist after the batch and match the amount paid.
+    function isAdvanceAtCreation(shopId, orderId) {
+      let paymentId = request.resource.data.lastPaymentId;
+      let payment = getAfter(paymentPath(shopId, paymentId)).data;
+      return payment.orderId == orderId
+          && payment.amount == request.resource.data.totalPaid
+          && payment.isVoided == false;
+    }
+
+    // An existing order whose totalPaid changes: a payment in the same
+    // batch must be either NEW with exactly that amount, or VOIDED with
+    // exactly that amount.
+    function isPaymentChange(shopId, orderId) {
+      let paymentId = request.resource.data.lastPaymentId;
+      let after = getAfter(paymentPath(shopId, paymentId)).data;
+      let delta = request.resource.data.totalPaid - resource.data.totalPaid;
+      return after.orderId == orderId
+          && (
+               (!exists(paymentPath(shopId, paymentId))
+                  && after.isVoided == false
+                  && delta == after.amount)
+               ||
+               (exists(paymentPath(shopId, paymentId))
+                  && get(paymentPath(shopId, paymentId)).data.isVoided == false
+                  && after.isVoided == true
+                  && delta == -after.amount)
+             );
+    }
+
+    match /shops/{shopId} {
+      allow read: if isShopOwner(shopId);
+
+      // You can only create YOUR shop, and it must name you as owner.
+           allow create: if isShopOwner(shopId)
+                         && isValidShop(request.resource.data)
+                         && request.resource.data.ownerUid == request.auth.uid;
+
+           // The owner can edit the shop but can never change who owns it.
+           allow update: if isShopOwner(shopId)
+                         && isValidShop(request.resource.data)
+                         && request.resource.data.ownerUid == resource.data.ownerUid;
+
+      // Deleting a whole shop is not allowed from the app.
+      allow delete: if false;
+
+      match /customers/{customerId} {
+        allow read: if isShopOwner(shopId);
+
+        allow create: if isShopOwner(shopId)
+                      && isValidCustomer(request.resource.data);
+
+        // Edits must stay valid, and the creation date can never change.
+        allow update: if isShopOwner(shopId)
+                      && isValidCustomer(request.resource.data)
+                      && request.resource.data.createdAt == resource.data.createdAt;
+
+        // Customers are archived, never deleted (they own order history).
+        allow delete: if false;
+      }
+          // The exact shape the shop document must have.
+          function isValidShop(data) {
+            return data.keys().hasOnly([
+                     'name', 'ownerUid', 'currency', 'createdAt', 'updatedAt'
+                   ])
+                && data.name is string
+                && data.name.size() >= 1 && data.name.size() <= 60
+                && data.ownerUid is string
+                && data.currency == 'PKR'
+                && data.createdAt is timestamp
+                && data.updatedAt is timestamp;
+          }
+
+      match /measurements/{measurementId} {
+        allow read: if isShopOwner(shopId);
+
+        allow create: if isShopOwner(shopId)
+                      && isValidMeasurement(request.resource.data);
+
+        // A set can never be moved to another customer, and its creation
+        // date can never change.
+        allow update: if isShopOwner(shopId)
+                      && isValidMeasurement(request.resource.data)
+                      && request.resource.data.customerId == resource.data.customerId
+                      && request.resource.data.createdAt == resource.data.createdAt;
+
+        // Safe to delete: orders keep their own snapshot.
+        allow delete: if isShopOwner(shopId);
+      }
+
+      match /orders/{orderId} {
+        allow read: if isShopOwner(shopId);
+
+        // A new order starts booked, and is either unpaid or created
+        // together with a matching advance payment.
+        allow create: if isShopOwner(shopId)
+                      && isValidOrder(request.resource.data)
+                      && request.resource.data.status == 'booked'
+                      && (request.resource.data.totalPaid == 0
+                          || isAdvanceAtCreation(shopId, orderId));
+
+        // The customer, order number and creation date never change.
+        // totalPaid may only change together with a matching payment.
+        allow update: if isShopOwner(shopId)
+                      && isValidOrder(request.resource.data)
+                      && request.resource.data.customerId == resource.data.customerId
+                      && request.resource.data.orderNumber == resource.data.orderNumber
+                      && request.resource.data.createdAt == resource.data.createdAt
+                      && (request.resource.data.totalPaid == resource.data.totalPaid
+                          || isPaymentChange(shopId, orderId));
+
+        // Orders are cancelled, never deleted (they own payments).
+        allow delete: if false;
+      }
+
+      match /payments/{paymentId} {
+        allow read: if isShopOwner(shopId);
+
+        // A new payment must be valid, not voided, belong to the right
+        // customer, and the order must be updated in the same batch.
+        allow create: if isShopOwner(shopId)
+                      && isValidPayment(request.resource.data)
+                      && request.resource.data.isVoided == false
+                      && request.resource.data.customerId ==
+                         getAfter(orderPath(shopId, request.resource.data.orderId)).data.customerId
+                      && getAfter(orderPath(shopId, request.resource.data.orderId)).data.lastPaymentId == paymentId;
+
+        // The ONLY change allowed is voiding, and the order must be
+        // updated in the same batch.
+        allow update: if isShopOwner(shopId)
+                      && resource.data.isVoided == false
+                      && request.resource.data.isVoided == true
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['isVoided', 'voidedAt'])
+                      && getAfter(orderPath(shopId, resource.data.orderId)).data.lastPaymentId == paymentId;
+
+        // Payments are voided, never deleted.
+        allow delete: if false;
+      }
+    }
+
+    // Anything not matched above is denied by default.
+  }
+}
