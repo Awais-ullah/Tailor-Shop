@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tailor_app/core/errors/app_failure.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/utils/inch_format.dart';
 import 'package:tailor_app/core/utils/money.dart';
@@ -12,7 +12,10 @@ import 'package:tailor_app/core/widgets/app_snackbar.dart';
 import 'package:tailor_app/core/widgets/state_views.dart';
 import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:tailor_app/features/measurements/data/measurement_templates.dart';
+import 'package:tailor_app/features/measurements/data/models/measurement.dart';
 import 'package:tailor_app/features/measurements/presentation/cubit/measurements_cubit.dart';
+import 'package:tailor_app/features/measurements/presentation/screens/measurement_form_screen.dart';
+import 'package:tailor_app/features/measurements/presentation/widgets/garment_picker_sheet.dart';
 import 'package:tailor_app/features/orders/data/models/order.dart';
 import 'package:tailor_app/features/orders/data/models/order_item.dart';
 import 'package:tailor_app/features/orders/data/models/order_measurement.dart';
@@ -21,6 +24,8 @@ import 'package:tailor_app/features/orders/presentation/cubit/orders_cubit.dart'
 import 'package:tailor_app/features/orders/presentation/widgets/measurement_attach_dialog.dart';
 import 'package:tailor_app/features/orders/presentation/widgets/order_item_dialog.dart';
 import 'package:tailor_app/features/payments/data/payment_method.dart';
+
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// New order: pass [customerId]. Editing: pass [orderId] only.
 class OrderFormScreen extends StatefulWidget {
@@ -149,7 +154,11 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
         .where((m) => !alreadyAttached.contains(m.id))
         .toList();
 
-    final chosen = await showMeasurementAttachDialog(context, available);
+    final chosen = await showMeasurementAttachDialog(
+      context,
+      available,
+      onNewMeasurement: _takeNewMeasurement,
+    );
     if (chosen == null || chosen.isEmpty || !mounted) return;
 
     setState(() {
@@ -157,11 +166,54 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     });
   }
 
+  /// Takes a fresh measurement for this customer, then attaches it to the
+  /// order straight away.
+  Future<void> _takeNewMeasurement() async {
+    final customerId = _customerId;
+    if (customerId == null || !mounted) return;
+
+    final garment = await showGarmentPicker(context);
+    if (garment == null || !mounted) return;
+
+    final measurementsCubit = context.read<MeasurementsCubit>();
+    final customersCubit = context.read<CustomersCubit>();
+
+    final savedId = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: measurementsCubit),
+            BlocProvider.value(value: customersCubit),
+          ],
+          child: MeasurementFormScreen(
+            customerId: customerId,
+            garmentType: garment,
+            returnToCaller: true,
+          ),
+        ),
+      ),
+    );
+    if (savedId == null || !mounted) return;
+
+    // The new set arrives through the live list a moment after saving.
+    Measurement? saved;
+    for (var i = 0; i < 20 && mounted; i++) {
+      saved = measurementsCubit.state.byId(savedId);
+      if (saved != null) break;
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    if (saved == null || !mounted) return;
+
+    final alreadyAttached = _attached.any((m) => m.sourceId == savedId);
+    if (alreadyAttached) return;
+    setState(() => _attached.add(OrderMeasurement.fromMeasurement(saved!)));
+  }
+
   Future<void> _save() async {
     FocusScope.of(context).unfocus();
 
     if (_items.isEmpty) {
-      AppSnackbar.showError(context, 'Add at least one item.');
+      AppSnackbar.showError(context, S.current.addAtLeastOneItem);
       return;
     }
     if (!(_formKey.currentState?.validate() ?? false)) return;
@@ -184,14 +236,14 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
       if (!mounted) return;
       AppSnackbar.showSuccess(
         context,
-        _isEditing ? 'Order updated' : 'Order created',
+        _isEditing ? S.current.orderUpdated : S.current.orderCreated,
       );
       context.pop();
     } on AppFailure catch (failure) {
       if (mounted) AppSnackbar.showError(context, failure.message);
     } catch (_) {
       if (mounted) {
-        AppSnackbar.showError(context, 'Something went wrong. Please try again.');
+        AppSnackbar.showError(context, S.current.errorGeneric);
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -204,12 +256,12 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
 
     if (customerId == null || (_isEditing && _existing == null)) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Order')),
+        appBar: AppBar(title: Text(S.current.order)),
         body: EmptyState(
           icon: Icons.receipt_long_outlined,
-          title: 'Order not found',
-          message: 'Something is missing. Please go back and try again.',
-          actionLabel: 'Go back',
+          title: S.current.orderNotFound,
+          message: S.current.somethingMissing,
+          actionLabel: S.current.goBack,
           onAction: () => context.pop(),
         ),
       );
@@ -222,7 +274,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _isEditing ? 'Edit order #${_existing!.orderNumber}' : 'New order',
+          _isEditing ? S.current.editOrderNumber(_existing!.orderNumber) : S.current.newOrder,
         ),
       ),
       body: SingleChildScrollView(
@@ -241,11 +293,11 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: AppColors.primarySoft,
+                            backgroundColor: context.pal.primarySoft,
                             child: Text(
                               customer?.initial ?? '?',
-                              style: const TextStyle(
-                                color: AppColors.primary,
+                              style: TextStyle(
+                                color: context.pal.primary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -256,7 +308,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  customer?.name ?? 'Unknown customer',
+                                  customer?.name ?? S.current.unknownCustomer,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
@@ -266,8 +318,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                                 if (customer != null && customer.phone.isNotEmpty)
                                   Text(
                                     customer.phone,
-                                    style: const TextStyle(
-                                      color: AppColors.slate500,
+                                    style: TextStyle(
+                                      color: context.pal.slate500,
                                     ),
                                   ),
                               ],
@@ -285,8 +337,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                         controller: _orderDateController,
                         readOnly: true,
                         onTap: _pickOrderDate,
-                        decoration: const InputDecoration(
-                          labelText: 'Order date',
+                        decoration: InputDecoration(
+                          labelText: S.current.orderDate,
                           prefixIcon: Icon(Icons.event_outlined),
                         ),
                       ),
@@ -296,16 +348,16 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                         onTap: _pickDeliveryDate,
                         validator: (_) {
                           if (_deliveryDate.isBefore(_orderDate)) {
-                            return 'Cannot be before the order date';
+                            return S.current.cannotBeBeforeOrderDate;
                           }
                           if (_deliveryDate
                               .isAfter(AppDates.addDays(_orderDate, 365))) {
-                            return 'Delivery date is too far away';
+                            return S.current.deliveryTooFar;
                           }
                           return null;
                         },
-                        decoration: const InputDecoration(
-                          labelText: 'Delivery date',
+                        decoration: InputDecoration(
+                          labelText: S.current.deliveryDate,
                           prefixIcon: Icon(Icons.local_shipping_outlined),
                         ),
                       ),
@@ -316,7 +368,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          'Items',
+                          S.current.items,
                           style: textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
@@ -324,7 +376,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                       OutlinedButton.icon(
                         onPressed: _addItem,
                         icon: const Icon(Icons.add),
-                        label: const Text('Add item'),
+                        label: Text(S.current.addItem),
                       ),
                     ],
                   ),
@@ -335,12 +387,12 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                       child: Column(
                         children: [
                           if (_items.isEmpty)
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.all(16),
                               child: Text(
-                                'No items yet. Add what the customer ordered.',
+                                S.current.noItemsYet,
                                 textAlign: TextAlign.center,
-                                style: TextStyle(color: AppColors.slate500),
+                                style: TextStyle(color: context.pal.slate500),
                               ),
                             )
                           else
@@ -352,12 +404,12 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                               ),
                           const Divider(),
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+                            padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 8, 8),
                             child: Row(
                               children: [
-                                const Expanded(
+                                Expanded(
                                   child: Text(
-                                    'Total',
+                                    S.current.total,
                                     style: TextStyle(fontWeight: FontWeight.w700),
                                   ),
                                 ),
@@ -389,7 +441,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          'Measurements',
+                          S.current.measurements,
                           style: textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
@@ -397,32 +449,31 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                       OutlinedButton.icon(
                         onPressed: _attachMeasurements,
                         icon: const Icon(Icons.straighten_outlined),
-                        label: const Text('Attach'),
+                        label: Text(S.current.attach),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'A copy is saved with the order, so later changes to the '
-                        "customer's measurements won't affect it.",
-                    style: TextStyle(color: AppColors.slate500, fontSize: 13),
+                  Text(
+                    S.current.copySavedWithOrder,
+                    style: TextStyle(color: context.pal.slate500, fontSize: 13),
                   ),
                   const SizedBox(height: 8),
                   if (_attached.isEmpty)
-                    const Card(
+                    Card(
                       child: Padding(
                         padding: EdgeInsets.all(16),
                         child: Text(
-                          'No measurements attached.',
+                          S.current.noMeasurementsAttached,
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: AppColors.slate500),
+                          style: TextStyle(color: context.pal.slate500),
                         ),
                       ),
                     )
                   else
                     for (var i = 0; i < _attached.length; i++)
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsetsDirectional.only(bottom: 8),
                         child: _AttachedRow(
                           measurement: _attached[i],
                           onRemove: () => setState(() => _attached.removeAt(i)),
@@ -435,9 +486,9 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                     maxLines: 5,
                     textCapitalization: TextCapitalization.sentences,
                     inputFormatters: [LengthLimitingTextInputFormatter(1000)],
-                    decoration: const InputDecoration(
-                      labelText: 'Notes',
-                      hintText: 'e.g. Needs it before Eid',
+                    decoration: InputDecoration(
+                      labelText: S.current.notes,
+                      hintText: S.current.orderNotesExample,
                       alignLabelWithHint: true,
                       prefixIcon: Icon(Icons.notes_outlined),
                     ),
@@ -448,7 +499,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: _saving ? null : () => context.pop(),
-                          child: const Text('Cancel'),
+                          child: Text(S.current.cancel),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -464,7 +515,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                               color: Colors.white,
                             ),
                           )
-                              : Text(_isEditing ? 'Save' : 'Create order'),
+                              : Text(_isEditing ? S.current.save : S.current.createOrder),
                         ),
                       ),
                     ],
@@ -500,9 +551,9 @@ class _AdvanceSection extends StatelessWidget {
     if (text.isEmpty) return null;
 
     final amount = int.tryParse(text);
-    if (amount == null || amount <= 0) return 'Enter an amount greater than 0';
+    if (amount == null || amount <= 0) return S.current.enterAmountOver0;
     if (amount > total) {
-      return "Can't be more than the total (${Money.pkr(total)})";
+      return S.current.cantExceedTotal(Money.pkr(total));
     }
     return null;
   }
@@ -516,16 +567,16 @@ class _AdvanceSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Advance payment (optional)',
+          S.current.advancePaymentOptional,
           style: Theme.of(context)
               .textTheme
               .titleSmall
               ?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Money received now, when the order is booked.',
-          style: TextStyle(color: AppColors.slate500, fontSize: 13),
+        Text(
+          S.current.moneyReceivedNow,
+          style: TextStyle(color: context.pal.slate500, fontSize: 13),
         ),
         const SizedBox(height: 12),
         TextFormField(
@@ -537,9 +588,9 @@ class _AdvanceSection extends StatelessWidget {
           ],
           validator: _validate,
           onChanged: (_) => onChanged(),
-          decoration: const InputDecoration(
-            labelText: 'Advance amount',
-            prefixText: 'Rs. ',
+          decoration: InputDecoration(
+            labelText: S.current.advanceAmount,
+            prefixText: Money.prefix,
           ),
         ),
         const SizedBox(height: 12),
@@ -558,13 +609,12 @@ class _AdvanceSection extends StatelessWidget {
         ),
         if (isValid)
           Padding(
-            padding: const EdgeInsets.only(top: 12),
+            padding: const EdgeInsetsDirectional.only(top: 12),
             child: Text(
-              'Remaining after advance: '
-                  '${Money.pkr(OrderMoney.remaining(total: total, paid: amount))}',
-              style: const TextStyle(
+              S.current.remainingAfterAdvance(Money.pkr(OrderMoney.remaining(total: total, paid: amount))),
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: AppColors.slate700,
+                color: context.pal.slate700,
               ),
             ),
           ),
@@ -590,7 +640,7 @@ class _ItemRow extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 4, 0, 4),
+        padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 0, 4),
         child: Row(
           children: [
             Expanded(
@@ -605,7 +655,7 @@ class _ItemRow extends StatelessWidget {
                   ),
                   Text(
                     '${item.quantity} × ${Money.pkr(item.unitPrice)}',
-                    style: const TextStyle(color: AppColors.slate500),
+                    style: TextStyle(color: context.pal.slate500),
                   ),
                 ],
               ),
@@ -616,7 +666,7 @@ class _ItemRow extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             IconButton(
-              tooltip: 'Remove item',
+              tooltip: S.current.removeItem,
               icon: const Icon(Icons.close, size: 20),
               onPressed: onDelete,
             ),
@@ -644,10 +694,10 @@ class _AttachedRow extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 0, 8),
+        padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 8),
         child: Row(
           children: [
-            Icon(measurement.garmentType.icon, color: AppColors.primary),
+            Icon(measurement.garmentType.icon, color: context.pal.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -667,8 +717,8 @@ class _AttachedRow extends StatelessWidget {
                       summary,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.slate500,
+                      style: TextStyle(
+                        color: context.pal.slate500,
                         fontSize: 13,
                       ),
                     ),
@@ -676,7 +726,7 @@ class _AttachedRow extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: 'Remove measurements',
+              tooltip: S.current.removeMeasurements,
               icon: const Icon(Icons.close, size: 20),
               onPressed: onRemove,
             ),

@@ -3,10 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tailor_app/core/router/app_routes.dart';
 import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/widgets/state_views.dart';
 import 'package:tailor_app/features/customers/data/models/customer.dart';
 import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:tailor_app/features/customers/presentation/cubit/customers_state.dart';
+
+import 'package:tailor_app/core/l10n/app_strings.dart';
+
+import '../../../../core/widgets/fade_slide_in.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -30,15 +35,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Customers'),
+        title: Text(S.current.customers),
         actions: [
           BlocBuilder<CustomersCubit, CustomersState>(
             buildWhen: (previous, current) =>
             previous.showArchived != current.showArchived,
             builder: (context, state) => IconButton(
               tooltip: state.showArchived
-                  ? 'Show active customers'
-                  : 'Show archived customers',
+                  ? S.current.showActiveCustomers
+                  : S.current.showArchivedCustomers,
               icon: Icon(
                 state.showArchived
                     ? Icons.people_outline
@@ -51,11 +56,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: context.pal.brand,
+        foregroundColor: AppColors.gold,
         onPressed: () => context.push(AppRoutes.customerNew),
         icon: const Icon(Icons.person_add_alt_1),
-        label: const Text('Add customer'),
+        label: Text(S.current.addCustomer),
       ),
       body: Column(
         children: [
@@ -95,20 +100,20 @@ class _SearchBar extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 900),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
           child: TextField(
             controller: controller,
             onChanged: onChanged,
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: 'Search by name or phone',
+              hintText: S.current.searchNameOrPhone,
               prefixIcon: const Icon(Icons.search),
               suffixIcon: ValueListenableBuilder<TextEditingValue>(
                 valueListenable: controller,
                 builder: (context, value, _) => value.text.isEmpty
                     ? const SizedBox.shrink()
                     : IconButton(
-                  tooltip: 'Clear search',
+                  tooltip: S.current.clearSearch,
                   icon: const Icon(Icons.close),
                   onPressed: onClear,
                 ),
@@ -133,7 +138,7 @@ class _Content extends StatelessWidget {
         return const LoadingView();
       case CustomersStatus.failure:
         return ErrorState(
-          message: state.errorMessage ?? 'Could not load customers.',
+          message: state.errorMessage ?? S.current.couldNotLoadCustomers,
           onRetry: context.read<CustomersCubit>().retry,
         );
       case CustomersStatus.loaded:
@@ -149,17 +154,18 @@ class _Content extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 900),
         child: ListView.separated(
           // Extra bottom padding keeps the last item clear of the button.
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 96),
           itemCount: customers.length,
           separatorBuilder: (_, _) => const SizedBox(height: 8),
-          itemBuilder: (context, index) =>
-              _CustomerTile(customer: customers[index]),
+          itemBuilder: (context, index) => FadeSlideIn(
+            delay: Duration(milliseconds: 35 * (index < 8 ? index : 8)),
+            child: _CustomerTile(customer: customers[index]),
+          ),
         ),
       ),
     );
   }
 }
-
 class _EmptyContent extends StatelessWidget {
   const _EmptyContent({required this.state});
 
@@ -172,22 +178,22 @@ class _EmptyContent extends StatelessWidget {
     if (query.isNotEmpty) {
       return EmptyState(
         icon: Icons.search_off,
-        title: 'No matches',
-        message: 'No customers match "$query".',
+        title: S.current.noMatches,
+        message: S.current.noCustomersMatch(query),
       );
     }
     if (state.showArchived) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.inventory_2_outlined,
-        title: 'No archived customers',
-        message: 'Customers you archive will appear here.',
+        title: S.current.noArchivedCustomers,
+        message: S.current.archivedAppearHere,
       );
     }
     return EmptyState(
       icon: Icons.people_outline,
-      title: 'No customers yet',
-      message: 'Add your first customer to get started.',
-      actionLabel: 'Add customer',
+      title: S.current.noCustomersYet,
+      message: S.current.addFirstCustomer,
+      actionLabel: S.current.addCustomer,
       onAction: () => context.push(AppRoutes.customerNew),
     );
   }
@@ -205,21 +211,22 @@ class _CustomerTile extends StatelessWidget {
       child: InkWell(
         onTap: () => context.push(AppRoutes.customerDetails(customer.id)),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
               CircleAvatar(
-                radius: 20,
-                backgroundColor: AppColors.primarySoft,
+                radius: 26,
+                backgroundColor: context.pal.brand,
                 child: Text(
                   customer.initial,
                   style: const TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.gold,
                     fontWeight: FontWeight.w700,
+                    fontSize: 20,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,21 +236,51 @@ class _CustomerTile extends StatelessWidget {
                       customer.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      customer.phone.isEmpty
-                          ? 'No phone number'
-                          : customer.phone,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: AppColors.slate500),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.phone_outlined,
+                          size: 14,
+                          color: context.pal.slate500,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            customer.phone.isEmpty
+                                ? S.current.noPhoneNumber
+                                : customer.phone,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: context.pal.slate500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.slate500),
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: context.pal.primarySoft,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.chevron_right,
+                  size: 20,
+                  color: context.pal.primary,
+                ),
+              ),
             ],
           ),
         ),

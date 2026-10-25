@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tailor_app/core/router/app_routes.dart';
 import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/widgets/app_snackbar.dart';
 import 'package:tailor_app/core/widgets/state_views.dart';
 import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit.dart';
@@ -10,6 +11,10 @@ import 'package:tailor_app/features/customers/presentation/widgets/customer_pick
 import 'package:tailor_app/features/orders/presentation/cubit/orders_cubit.dart';
 import 'package:tailor_app/features/orders/presentation/cubit/orders_state.dart';
 import 'package:tailor_app/features/orders/presentation/widgets/order_card.dart';
+
+import 'package:tailor_app/core/l10n/app_strings.dart';
+
+import '../../../../core/widgets/fade_slide_in.dart';
 
 /// Pick a customer, then open the new-order form.
 Future<void> _startNewOrder(BuildContext context) async {
@@ -21,7 +26,7 @@ Future<void> _startNewOrder(BuildContext context) async {
       .toList();
 
   if (customers.isEmpty) {
-    AppSnackbar.showError(context, 'Add a customer first, then create their order.');
+    AppSnackbar.showError(context, S.current.addCustomerFirstOrder);
     return;
   }
 
@@ -52,13 +57,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final cubit = context.read<OrdersCubit>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Orders')),
+      appBar: AppBar(title: Text(S.current.orders)),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: context.pal.brand,
+        foregroundColor: AppColors.gold,
         onPressed: () => _startNewOrder(context),
         icon: const Icon(Icons.add),
-        label: const Text('New order'),
+        label: Text(S.current.newOrder),
       ),
       body: Column(
         children: [
@@ -66,20 +71,20 @@ class _OrdersScreenState extends State<OrdersScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 900),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
                 child: TextField(
                   controller: _searchController,
                   onChanged: cubit.setQuery,
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
-                    hintText: 'Search by customer or order number',
+                    hintText: S.current.searchCustomerOrOrder,
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: ValueListenableBuilder<TextEditingValue>(
                       valueListenable: _searchController,
                       builder: (context, value, _) => value.text.isEmpty
                           ? const SizedBox.shrink()
                           : IconButton(
-                        tooltip: 'Clear search',
+                        tooltip: S.current.clearSearch,
                         icon: const Icon(Icons.close),
                         onPressed: () {
                           _searchController.clear();
@@ -149,7 +154,7 @@ class _Content extends StatelessWidget {
         return const LoadingView();
       case OrdersStatus.failure:
         return ErrorState(
-          message: state.errorMessage ?? 'Could not load orders.',
+          message: state.errorMessage ?? S.current.couldNotLoadOrders,
           onRetry: context.read<OrdersCubit>().retry,
         );
       case OrdersStatus.loaded:
@@ -160,31 +165,31 @@ class _Content extends StatelessWidget {
     final names = {
       for (final customer in customersState.customers) customer.id: customer.name,
     };
-    String nameOf(String id) => names[id] ?? 'Unknown customer';
+    String nameOf(String id) => names[id] ?? S.current.unknownCustomer;
 
     final orders = state.filtered(nameOf);
 
     if (orders.isEmpty) {
       if (state.query.trim().isNotEmpty) {
-        return const EmptyState(
+        return EmptyState(
           icon: Icons.search_off,
-          title: 'No matches',
-          message: 'No orders match your search.',
+          title: S.current.noMatches,
+          message: S.current.noOrdersMatchSearch,
         );
       }
       if (state.orders.isEmpty) {
         return EmptyState(
           icon: Icons.receipt_long_outlined,
-          title: 'No orders yet',
-          message: 'Create your first order to start tracking work.',
-          actionLabel: 'New order',
+          title: S.current.noOrdersYet,
+          message: S.current.createFirstOrder,
+          actionLabel: S.current.newOrder,
           onAction: () => _startNewOrder(context),
         );
       }
       return EmptyState(
         icon: Icons.filter_list_off,
-        title: 'Nothing here',
-        message: 'No ${state.filter.label.toLowerCase()} orders right now.',
+        title: S.current.nothingHere,
+        message: S.current.noFilterOrders(state.filter.label.toLowerCase()),
       );
     }
 
@@ -193,15 +198,18 @@ class _Content extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 900),
         child: ListView.separated(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 96),
           itemCount: orders.length,
           separatorBuilder: (_, _) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
             final order = orders[index];
-            return OrderCard(
-              order: order,
-              customerName: nameOf(order.customerId),
-              onTap: () => context.push(AppRoutes.orderDetails(order.id)),
+            return FadeSlideIn(
+              delay: Duration(milliseconds: 35 * (index < 8 ? index : 8)),
+              child: OrderCard(
+                order: order,
+                customerName: nameOf(order.customerId),
+                onTap: () => context.push(AppRoutes.orderDetails(order.id)),
+              ),
             );
           },
         ),

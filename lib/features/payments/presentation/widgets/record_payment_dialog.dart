@@ -4,6 +4,8 @@ import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/utils/money.dart';
 import 'package:tailor_app/features/payments/data/payment_method.dart';
 
+import 'package:tailor_app/core/l10n/app_strings.dart';
+
 class PaymentInput {
   const PaymentInput({
     required this.amount,
@@ -64,10 +66,10 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
 
   String? _validateAmount(String? value) {
     final amount = int.tryParse(value?.trim() ?? '');
-    if (amount == null) return 'Enter the amount';
-    if (amount <= 0) return 'Amount must be greater than 0';
+    if (amount == null) return S.current.enterAmount;
+    if (amount <= 0) return S.current.amountOver0;
     if (amount > widget.remaining) {
-      return 'More than the remaining ${Money.pkr(widget.remaining)}';
+      return S.current.moreThanRemainingShort(Money.pkr(widget.remaining));
     }
     return null;
   }
@@ -105,7 +107,7 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Record payment'),
+      title: Text(S.current.recordPayment),
       scrollable: true,
       content: SizedBox(
         width: 400,
@@ -116,7 +118,7 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Remaining: ${Money.pkr(widget.remaining)}',
+                S.current.remainingColon(Money.pkr(widget.remaining)),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 12),
@@ -129,16 +131,16 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
                   LengthLimitingTextInputFormatter(8),
                 ],
                 validator: _validateAmount,
-                decoration: const InputDecoration(
-                  labelText: 'Amount received',
-                  prefixText: 'Rs. ',
+                decoration: InputDecoration(
+                  labelText: S.current.amountReceived,
+                  prefixText: Money.prefix,
                 ),
               ),
               const SizedBox(height: 8),
               Align(
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: ActionChip(
-                  label: Text('Full balance · ${Money.pkr(widget.remaining)}'),
+                  label: Text(S.current.fullBalance(Money.pkr(widget.remaining))),
                   onPressed: () => setState(
                         () => _amountController.text = widget.remaining.toString(),
                   ),
@@ -163,8 +165,8 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
                 controller: _dateController,
                 readOnly: true,
                 onTap: _pickDate,
-                decoration: const InputDecoration(
-                  labelText: 'Date received',
+                decoration: InputDecoration(
+                  labelText: S.current.dateReceived,
                   prefixIcon: Icon(Icons.event_outlined),
                 ),
               ),
@@ -173,9 +175,9 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
                 controller: _noteController,
                 textCapitalization: TextCapitalization.sentences,
                 inputFormatters: [LengthLimitingTextInputFormatter(200)],
-                decoration: const InputDecoration(
-                  labelText: 'Note (optional)',
-                  hintText: 'e.g. Second installment',
+                decoration: InputDecoration(
+                  labelText: S.current.noteOptional,
+                  hintText: S.current.noteExample,
                 ),
               ),
             ],
@@ -185,9 +187,9 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(S.current.cancel),
         ),
-        FilledButton(onPressed: _submit, child: const Text('Save payment')),
+        FilledButton(onPressed: _submit, child: Text(S.current.savePayment)),
       ],
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tailor_app/core/errors/app_failure.dart';
 import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/money.dart';
 import 'package:tailor_app/core/widgets/app_snackbar.dart';
 import 'package:tailor_app/features/orders/data/models/order.dart';
@@ -10,7 +11,8 @@ import 'package:tailor_app/features/payments/data/models/payment.dart';
 import 'package:tailor_app/features/payments/presentation/cubit/payments_cubit.dart';
 import 'package:tailor_app/features/payments/presentation/cubit/payments_state.dart';
 import 'package:tailor_app/features/payments/presentation/widgets/payment_tile.dart';
-import 'package:tailor_app/features/payments/presentation/widgets/record_payment_dialog.dart';
+import 'package:tailor_app/features/payments/presentation/widgets/record_payment_dialog.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// "Payment history" card on the order detail screen, with the
 /// Record payment button and Void action.
@@ -36,7 +38,7 @@ class OrderPaymentsSection extends StatelessWidget {
         note: input.note,
         date: input.date,
       );
-      if (context.mounted) AppSnackbar.showSuccess(context, 'Payment recorded');
+      if (context.mounted) AppSnackbar.showSuccess(context, S.current.paymentRecorded);
     } on AppFailure catch (failure) {
       if (context.mounted) AppSnackbar.showError(context, failure.message);
     }
@@ -48,20 +50,19 @@ class OrderPaymentsSection extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Void this payment?'),
+        title: Text(S.current.voidPaymentQ),
         content: Text(
-          '${Money.pkr(payment.amount)} will be added back to the balance. '
-              'The payment stays in the history, marked as voided.',
+          S.current.voidPaymentBody(Money.pkr(payment.amount)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: Text(S.current.cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Void payment'),
+            child: Text(S.current.voidPayment),
           ),
         ],
       ),
@@ -70,7 +71,7 @@ class OrderPaymentsSection extends StatelessWidget {
 
     try {
       await cubit.voidPayment(order: order, payment: payment);
-      if (context.mounted) AppSnackbar.showSuccess(context, 'Payment voided');
+      if (context.mounted) AppSnackbar.showSuccess(context, S.current.paymentVoided);
     } on AppFailure catch (failure) {
       if (context.mounted) AppSnackbar.showError(context, failure.message);
     }
@@ -93,7 +94,7 @@ class OrderPaymentsSection extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Payment history',
+                    S.current.paymentHistory,
                     style: Theme.of(context)
                         .textTheme
                         .titleSmall
@@ -103,7 +104,7 @@ class OrderPaymentsSection extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: canRecord ? () => _record(context) : null,
                   icon: const Icon(Icons.add),
-                  label: const Text('Record payment'),
+                  label: Text(S.current.recordPayment),
                 ),
               ],
             ),
@@ -120,25 +121,25 @@ class OrderPaymentsSection extends StatelessWidget {
                 ),
               )
             else if (payments.isEmpty)
-              const Text(
-                'No payments yet.',
-                style: TextStyle(color: AppColors.slate500),
+              Text(
+                S.current.noPaymentsYetDot,
+                style: TextStyle(color: context.pal.slate500),
               )
             else
               for (final payment in payments)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsetsDirectional.only(bottom: 12),
                   child: PaymentTile(
                     payment: payment,
                     trailing: payment.isVoided
                         ? null
                         : PopupMenuButton<String>(
-                      tooltip: 'Payment options',
+                      tooltip: S.current.paymentOptions,
                       onSelected: (_) => _void(context, payment),
-                      itemBuilder: (context) => const [
+                      itemBuilder: (context) => [
                         PopupMenuItem(
                           value: 'void',
-                          child: Text('Void payment'),
+                          child: Text(S.current.voidPayment),
                         ),
                       ],
                     ),

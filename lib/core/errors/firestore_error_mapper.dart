@@ -1,10 +1,11 @@
-import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// Turns Firestore error codes into messages a shop owner understands.
 class FirestoreErrorMapper {
   FirestoreErrorMapper._();
 
-  static const String _generic = 'Something went wrong. Please try again.';
+  static String get _generic => S.current.errorGeneric;
 
   static String fromError(Object error) {
     if (error is FirebaseException) return message(error.code);
@@ -14,21 +15,20 @@ class FirestoreErrorMapper {
   static String message(String code) {
     switch (code) {
       case 'permission-denied':
-        return "You don't have permission to perform this action.";
+        return S.current.errorPermission;
       case 'unavailable':
       case 'network-request-failed':
-        return "Can't reach the server right now. Changes are kept on this "
-            "device and will sync when you're back online.";
+        return S.current.errorOffline;
       case 'deadline-exceeded':
-        return 'The server took too long to respond. Please try again.';
+        return S.current.errorTimeout;
       case 'not-found':
-        return 'That record could not be found. It may have been removed.';
+        return S.current.errorNotFound;
       case 'already-exists':
-        return 'That record already exists.';
+        return S.current.errorExists;
       case 'unauthenticated':
-        return 'Your session has expired. Please sign in again.';
+        return S.current.errorSessionExpired;
       case 'resource-exhausted':
-        return 'Too many requests. Please wait a moment and try again.';
+        return S.current.errorTooManyRequests;
       default:
         return _generic;
     }

@@ -7,7 +7,8 @@ import 'package:tailor_app/features/measurements/presentation/cubit/measurements
 import 'package:tailor_app/features/measurements/presentation/widgets/garment_picker_sheet.dart';
 import 'package:tailor_app/features/measurements/presentation/widgets/measurement_card.dart';
 
-import '../cubit/measurements_cubit.dart';
+import '../cubit/measurements_cubit.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// The "Measurements" tab on a customer's profile.
 class CustomerMeasurementsTab extends StatelessWidget {
@@ -30,7 +31,7 @@ class CustomerMeasurementsTab extends StatelessWidget {
             return const LoadingView();
           case MeasurementsStatus.failure:
             return ErrorState(
-              message: state.errorMessage ?? 'Could not load measurements.',
+              message: state.errorMessage ?? S.current.couldNotLoadMeasurements,
               onRetry: context.read<MeasurementsCubit>().retry,
             );
           case MeasurementsStatus.loaded:
@@ -41,10 +42,10 @@ class CustomerMeasurementsTab extends StatelessWidget {
         if (items.isEmpty) {
           return EmptyState(
             icon: Icons.straighten_outlined,
-            title: 'No measurements yet',
+            title: S.current.noMeasurementsYet,
             message:
-            "Save this customer's measurements so you never have to ask twice.",
-            actionLabel: 'Add measurements',
+            S.current.saveCustomerMeasurements,
+            actionLabel: S.current.addMeasurements,
             onAction: () => _add(context),
           );
         }
@@ -59,7 +60,7 @@ class CustomerMeasurementsTab extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: () => _add(context),
                   icon: const Icon(Icons.add),
-                  label: const Text('Add measurements'),
+                  label: Text(S.current.addMeasurements),
                 ),
                 const SizedBox(height: 12),
                 for (final item in items) ...[

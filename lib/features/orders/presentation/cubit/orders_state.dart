@@ -1,3 +1,4 @@
+import 'package:tailor_app/core/l10n/app_strings.dart';
 import 'package:equatable/equatable.dart';
 import 'package:tailor_app/features/orders/data/models/order.dart';
 import 'package:tailor_app/features/orders/data/order_status.dart';
@@ -15,9 +16,21 @@ enum OrderFilter {
   delivered('Delivered', OrderStatus.delivered),
   cancelled('Cancelled', OrderStatus.cancelled);
 
-  const OrderFilter(this.label, this.status);
+  const OrderFilter(this._label, this.status);
 
-  final String label;
+  final String _label;
+
+  String get label {
+    switch (this) {
+      case OrderFilter.active:
+        return S.current.active;
+      case OrderFilter.all:
+        return S.current.all;
+      default:
+        return S.current.dyn('order.${status!.id}', _label);
+    }
+  }
+
   final OrderStatus? status;
 
   bool matches(OrderStatus other) {

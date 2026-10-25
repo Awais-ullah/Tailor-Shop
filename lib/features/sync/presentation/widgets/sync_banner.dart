@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
-import 'package:tailor_app/features/sync/presentation/cubit/sync_cubit.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
+import 'package:tailor_app/features/sync/presentation/cubit/sync_cubit.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// A slim strip that only appears when something needs attention.
 class SyncBanner extends StatelessWidget {
@@ -17,13 +18,13 @@ class SyncBanner extends StatelessWidget {
 
         switch (state.status) {
           case SyncStatus.offline:
-            color = AppColors.warning;
+            color = context.pal.warning;
             icon = Icons.cloud_off_outlined;
-            text = 'Offline · changes are saved on this device';
+            text = S.current.offlineBanner;
           case SyncStatus.syncing:
-            color = AppColors.info;
+            color = context.pal.info;
             icon = Icons.sync;
-            text = 'Syncing changes…';
+            text = S.current.syncingChanges;
           case SyncStatus.connecting:
           case SyncStatus.synced:
             break;

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/phone_utils.dart';
-import 'package:tailor_app/features/customers/data/models/customer.dart';
+import 'package:tailor_app/features/customers/data/models/customer.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// Searchable "choose a customer" dialog.
 Future<Customer?> showCustomerPicker(
@@ -49,9 +50,9 @@ class _CustomerPickerDialogState extends State<_CustomerPickerDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 12),
               child: Text(
-                'Choose a customer',
+                S.current.chooseCustomer,
                 style: Theme.of(context)
                     .textTheme
                     .titleMedium
@@ -63,8 +64,8 @@ class _CustomerPickerDialogState extends State<_CustomerPickerDialog> {
               child: TextField(
                 autofocus: true,
                 onChanged: (value) => setState(() => _query = value),
-                decoration: const InputDecoration(
-                  hintText: 'Search by name or phone',
+                decoration: InputDecoration(
+                  hintText: S.current.searchNameOrPhone,
                   prefixIcon: Icon(Icons.search),
                 ),
               ),
@@ -74,9 +75,9 @@ class _CustomerPickerDialogState extends State<_CustomerPickerDialog> {
             // and shrinks when the keyboard opens.
             Flexible(
               child: results.isEmpty
-                  ? const Padding(
+                  ? Padding(
                 padding: EdgeInsets.all(24),
-                child: Center(child: Text('No customers found')),
+                child: Center(child: Text(S.current.noCustomersFound)),
               )
                   : ListView.builder(
                 shrinkWrap: true,
@@ -85,11 +86,11 @@ class _CustomerPickerDialogState extends State<_CustomerPickerDialog> {
                   final customer = results[index];
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: AppColors.primarySoft,
+                      backgroundColor: context.pal.primarySoft,
                       child: Text(
                         customer.initial,
-                        style: const TextStyle(
-                          color: AppColors.primary,
+                        style: TextStyle(
+                          color: context.pal.primary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -112,12 +113,12 @@ class _CustomerPickerDialogState extends State<_CustomerPickerDialog> {
               ),
             ),
             Align(
-              alignment: Alignment.centerRight,
+              alignment: AlignmentDirectional.centerEnd,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(8, 4, 12, 8),
+                padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 12, 8),
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  child: Text(S.current.cancel),
                 ),
               ),
             ),

@@ -12,7 +12,8 @@ import 'package:tailor_app/features/orders/data/order_status.dart';
 import 'package:tailor_app/features/payments/data/models/payment.dart';
 import 'package:tailor_app/features/payments/data/payment_method.dart';
 import 'package:tailor_app/features/payments/data/repositories/payment_repository.dart';
-import 'package:tailor_app/features/payments/presentation/cubit/payments_state.dart';
+import 'package:tailor_app/features/payments/presentation/cubit/payments_state.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 class PaymentsCubit extends Cubit<PaymentsState> {
   PaymentsCubit(this._repository, {required this.shopId})
@@ -70,14 +71,14 @@ class PaymentsCubit extends Cubit<PaymentsState> {
     required DateTime date,
   }) async {
     if (order.status == OrderStatus.cancelled) {
-      throw const AppFailure("You can't record a payment on a cancelled order.");
+      throw AppFailure(S.current.cantPayCancelled);
     }
     if (amount <= 0) {
-      throw const AppFailure('Enter an amount greater than 0.');
+      throw AppFailure(S.current.enterAmountOver0Dot);
     }
     if (amount > order.remainingAmount) {
       throw AppFailure(
-        'That is more than the remaining ${Money.pkr(order.remainingAmount)}.',
+        S.current.moreThanRemaining(Money.pkr(order.remainingAmount)),
       );
     }
 
@@ -102,12 +103,11 @@ class PaymentsCubit extends Cubit<PaymentsState> {
     required Payment payment,
   }) async {
     if (payment.isVoided) {
-      throw const AppFailure('This payment is already voided.');
+      throw AppFailure(S.current.alreadyVoided);
     }
     if (payment.amount > order.totalPaid) {
-      throw const AppFailure(
-        "This payment can't be voided because it is larger than the amount "
-            'recorded as paid on the order.',
+      throw AppFailure(
+        S.current.cantVoidLarger,
       );
     }
 

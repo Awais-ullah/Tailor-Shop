@@ -1,27 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/utils/inch_format.dart';
 import 'package:tailor_app/features/measurements/data/measurement_templates.dart';
 import 'package:tailor_app/features/measurements/data/models/measurement.dart';
 
+import 'package:tailor_app/core/l10n/app_strings.dart';
+
 /// Lets the user tick which saved measurement sets to attach to an order.
 /// [available] is passed in (not read from a Cubit) because dialogs open
 /// above the app's providers.
+///
+/// [onNewMeasurement] adds a "New measurement" button: the dialog closes and
+/// the callback starts taking a fresh measurement for the customer.
 Future<List<Measurement>?> showMeasurementAttachDialog(
     BuildContext context,
-    List<Measurement> available,
-    ) {
+    List<Measurement> available, {
+      VoidCallback? onNewMeasurement,
+    }) {
   return showDialog<List<Measurement>>(
     context: context,
-    builder: (_) => _AttachDialog(available: available),
+    builder: (_) => _AttachDialog(
+      available: available,
+      onNewMeasurement: onNewMeasurement,
+    ),
   );
 }
 
 class _AttachDialog extends StatefulWidget {
-  const _AttachDialog({required this.available});
+  const _AttachDialog({required this.available, this.onNewMeasurement});
 
   final List<Measurement> available;
+  final VoidCallback? onNewMeasurement;
 
   @override
   State<_AttachDialog> createState() => _AttachDialogState();
@@ -42,25 +52,24 @@ class _AttachDialogState extends State<_AttachDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Attach measurements'),
+      title: Text(S.current.attachMeasurements),
       scrollable: true,
       content: SizedBox(
         width: 400,
         child: widget.available.isEmpty
-            ? const Text(
-          'No saved measurements to attach. You can add them from the '
-              "customer's profile.",
-          style: TextStyle(color: AppColors.slate700),
+            ? Text(
+          S.current.noSavedMeasurementsToAttach,
+          style: TextStyle(color: context.pal.slate700),
         )
             : Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.only(bottom: 8),
+            Padding(
+              padding: EdgeInsetsDirectional.only(bottom: 8),
               child: Text(
-                'A copy is saved with the order.',
-                style: TextStyle(color: AppColors.slate500),
+                S.current.copySavedWithOrderShort,
+                style: TextStyle(color: context.pal.slate500),
               ),
             ),
             for (final measurement in widget.available)
@@ -93,9 +102,18 @@ class _AttachDialogState extends State<_AttachDialog> {
         ),
       ),
       actions: [
+        if (widget.onNewMeasurement != null)
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              widget.onNewMeasurement!();
+            },
+            icon: const Icon(Icons.add),
+            label: Text(S.current.newMeasurements),
+          ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(S.current.cancel),
         ),
         if (widget.available.isNotEmpty)
           FilledButton(
@@ -108,7 +126,7 @@ class _AttachDialogState extends State<_AttachDialog> {
                   .toList(),
             ),
             child: Text(
-              _selected.isEmpty ? 'Attach' : 'Attach (${_selected.length})',
+              _selected.isEmpty ? S.current.attach : S.current.attachCount(_selected.length),
             ),
           ),
       ],

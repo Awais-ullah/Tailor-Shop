@@ -6,7 +6,8 @@ import 'package:tailor_app/core/widgets/app_snackbar.dart';
 import 'package:tailor_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:tailor_app/features/auth/presentation/cubit/auth_state.dart';
 import 'package:tailor_app/features/auth/presentation/widgets/auth_scaffold.dart';
-import 'package:tailor_app/features/auth/presentation/widgets/password_field.dart';
+import 'package:tailor_app/features/auth/presentation/widgets/password_field.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -57,8 +58,8 @@ class _SignupScreenState extends State<SignupScreen> {
       listener: (context, state) =>
           AppSnackbar.showError(context, state.errorMessage!),
       child: AuthScaffold(
-        title: 'Create your account',
-        subtitle: 'Set up the owner account for your shop.',
+        title: S.current.createYourAccount,
+        subtitle: S.current.setupOwnerAccount,
         child: Form(
           key: _formKey,
           child: Column(
@@ -70,10 +71,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 textInputAction: TextInputAction.next,
                 autofillHints: const [AutofillHints.name],
                 validator: (value) =>
-                    Validators.requiredField(value, fieldName: 'Your name'),
+                    Validators.requiredField(value, fieldName: S.current.yourName),
                 onFieldSubmitted: (_) => _emailFocus.requestFocus(),
-                decoration: const InputDecoration(
-                  labelText: 'Your name',
+                decoration: InputDecoration(
+                  labelText: S.current.yourName,
                   prefixIcon: Icon(Icons.person_outline),
                 ),
               ),
@@ -86,8 +87,8 @@ class _SignupScreenState extends State<SignupScreen> {
                 autofillHints: const [AutofillHints.email],
                 validator: Validators.email,
                 onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                decoration: InputDecoration(
+                  labelText: S.current.email,
                   prefixIcon: Icon(Icons.mail_outline),
                 ),
               ),
@@ -95,7 +96,7 @@ class _SignupScreenState extends State<SignupScreen> {
               PasswordField(
                 controller: _passwordController,
                 focusNode: _passwordFocus,
-                label: 'Password',
+                label: S.current.password,
                 textInputAction: TextInputAction.next,
                 autofillHints: const [AutofillHints.newPassword],
                 validator: Validators.newPassword,
@@ -105,7 +106,7 @@ class _SignupScreenState extends State<SignupScreen> {
               PasswordField(
                 controller: _confirmController,
                 focusNode: _confirmFocus,
-                label: 'Confirm password',
+                label: S.current.confirmPassword,
                 textInputAction: TextInputAction.done,
                 validator: (value) => Validators.confirmPassword(
                   value,
@@ -128,7 +129,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       color: Colors.white,
                     ),
                   )
-                      : const Text('Create account'),
+                      : Text(S.current.createAccount),
                 ),
               ),
               const SizedBox(height: 24),
@@ -136,10 +137,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 alignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  const Text('Already have an account?'),
+                  Text(S.current.haveAccount),
                   TextButton(
                     onPressed: () => context.pop(),
-                    child: const Text('Sign in'),
+                    child: Text(S.current.signIn),
                   ),
                 ],
               ),

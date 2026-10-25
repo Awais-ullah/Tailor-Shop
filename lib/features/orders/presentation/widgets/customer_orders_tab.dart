@@ -5,7 +5,8 @@ import 'package:tailor_app/core/router/app_routes.dart';
 import 'package:tailor_app/core/widgets/state_views.dart';
 import 'package:tailor_app/features/orders/presentation/cubit/orders_cubit.dart';
 import 'package:tailor_app/features/orders/presentation/cubit/orders_state.dart';
-import 'package:tailor_app/features/orders/presentation/widgets/order_card.dart';
+import 'package:tailor_app/features/orders/presentation/widgets/order_card.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// The "Orders" tab on a customer's profile.
 class CustomerOrdersTab extends StatelessWidget {
@@ -22,7 +23,7 @@ class CustomerOrdersTab extends StatelessWidget {
             return const LoadingView();
           case OrdersStatus.failure:
             return ErrorState(
-              message: state.errorMessage ?? 'Could not load orders.',
+              message: state.errorMessage ?? S.current.couldNotLoadOrders,
               onRetry: context.read<OrdersCubit>().retry,
             );
           case OrdersStatus.loaded:
@@ -33,9 +34,9 @@ class CustomerOrdersTab extends StatelessWidget {
         if (orders.isEmpty) {
           return EmptyState(
             icon: Icons.receipt_long_outlined,
-            title: 'No orders yet',
-            message: "This customer's orders will appear here.",
-            actionLabel: 'New order',
+            title: S.current.noOrdersYet,
+            message: S.current.customerOrdersAppear,
+            actionLabel: S.current.newOrder,
             onAction: () => context.push(AppRoutes.customerOrderNew(customerId)),
           );
         }
@@ -51,7 +52,7 @@ class CustomerOrdersTab extends StatelessWidget {
                   onPressed: () =>
                       context.push(AppRoutes.customerOrderNew(customerId)),
                   icon: const Icon(Icons.add),
-                  label: const Text('New order'),
+                  label: Text(S.current.newOrder),
                 ),
                 const SizedBox(height: 12),
                 for (final order in orders) ...[

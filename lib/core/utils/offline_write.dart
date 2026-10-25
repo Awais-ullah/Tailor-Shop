@@ -4,7 +4,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tailor_app/core/errors/app_failure.dart';
 import 'package:tailor_app/core/errors/firestore_error_mapper.dart';
-import 'package:tailor_app/core/utils/write_failures.dart';
+import 'package:tailor_app/core/utils/write_failures.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// Offline-first write helper.
 ///
@@ -29,7 +30,7 @@ Future<void> awaitWriteBriefly(
           WriteFailures.report(
             error is FirebaseException
                 ? FirestoreErrorMapper.message(error.code)
-                : 'Something went wrong while saving.',
+                : S.current.errorSaving,
           );
         },
       ),

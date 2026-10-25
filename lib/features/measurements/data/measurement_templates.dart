@@ -1,3 +1,4 @@
+import 'package:tailor_app/core/l10n/app_strings.dart';
 import 'package:flutter/material.dart';
 
 enum GarmentType {
@@ -9,11 +10,13 @@ enum GarmentType {
   ),
   waistcoat('waistcoat', 'Waistcoat', Icons.dry_cleaning_outlined);
 
-  const GarmentType(this.id, this.label, this.icon);
+  const GarmentType(this.id, this._label, this.icon);
 
   /// Stored in Firestore. Never change these strings.
   final String id;
-  final String label;
+  final String _label;
+
+  String get label => S.current.dyn('garment.$id', _label);
   final IconData icon;
 
   static GarmentType? fromId(String? id) {
@@ -25,33 +28,74 @@ enum GarmentType {
 }
 
 class MeasurementField {
-  const MeasurementField(this.key, this.label, {this.hint});
+  const MeasurementField(this.key, this._label, {String? hint}) : _hint = hint;
 
   /// Stored in Firestore under `values`. Never change after release.
   final String key;
-  final String label;
+  final String _label;
+  final String? _hint;
 
-  /// Roman Urdu hint shown in the form.
-  final String? hint;
+  String get label => S.current.dyn('field.$key', _label);
+
+  /// Roman Urdu hint shown in the form (hidden when the app is in Urdu).
+  String? get hint => S.current.dynOrNull('hint.$key', _hint);
+
+  /// Icon shown next to this field in the form and on the detail screen.
+  IconData get icon {
+    switch (key) {
+      case 'length':
+        return Icons.height;
+      case 'shoulder':
+        return Icons.accessibility_new;
+      case 'chest':
+        return Icons.favorite_outline;
+      case 'waist':
+        return Icons.circle_outlined;
+      case 'hip':
+        return Icons.swap_horiz;
+      case 'daman':
+        return Icons.vertical_align_bottom;
+      case 'sleeve':
+        return Icons.pan_tool_outlined;
+      case 'armhole':
+        return Icons.adjust;
+      case 'collar':
+        return Icons.person_outline;
+      case 'cuff':
+        return Icons.watch_outlined;
+      case 'thigh':
+        return Icons.directions_walk;
+      case 'knee':
+        return Icons.airline_seat_legroom_normal;
+      case 'bottom':
+        return Icons.keyboard_double_arrow_down;
+      default:
+        return Icons.straighten_outlined;
+    }
+  }
 }
 
 class StyleOption {
-  const StyleOption(this.id, this.label);
+  const StyleOption(this.id, this._label);
 
   final String id;
-  final String label;
+  final String _label;
+
+  String get label => S.current.dyn('opt.$id', _label);
 }
 
 class StyleGroup {
   const StyleGroup(
       this.key,
-      this.label,
+      this._label,
       this.options, {
         this.multiSelect = false,
       });
 
   final String key;
-  final String label;
+  final String _label;
+
+  String get label => S.current.dyn('group.$key', _label);
   final List<StyleOption> options;
   final bool multiSelect;
 }

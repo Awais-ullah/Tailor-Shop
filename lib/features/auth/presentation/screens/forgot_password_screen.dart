@@ -5,7 +5,8 @@ import 'package:tailor_app/core/utils/validators.dart';
 import 'package:tailor_app/core/widgets/app_snackbar.dart';
 import 'package:tailor_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:tailor_app/features/auth/presentation/cubit/auth_state.dart';
-import 'package:tailor_app/features/auth/presentation/widgets/auth_scaffold.dart';
+import 'package:tailor_app/features/auth/presentation/widgets/auth_scaffold.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -48,8 +49,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         }
       },
       child: AuthScaffold(
-        title: 'Reset your password',
-        subtitle: "Enter your email and we'll send you a link to reset it.",
+        title: S.current.resetYourPassword,
+        subtitle: S.current.resetInstructions,
         child: Form(
           key: _formKey,
           child: Column(
@@ -62,8 +63,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 autofillHints: const [AutofillHints.email],
                 validator: Validators.email,
                 onFieldSubmitted: (_) => _submit(),
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                decoration: InputDecoration(
+                  labelText: S.current.email,
                   prefixIcon: Icon(Icons.mail_outline),
                 ),
               ),
@@ -82,13 +83,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       color: Colors.white,
                     ),
                   )
-                      : const Text('Send reset link'),
+                      : Text(S.current.sendResetLink),
                 ),
               ),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => context.pop(),
-                child: const Text('Back to sign in'),
+                child: Text(S.current.backToSignIn),
               ),
             ],
           ),

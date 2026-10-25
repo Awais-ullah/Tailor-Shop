@@ -7,7 +7,8 @@ import 'package:tailor_app/core/widgets/app_snackbar.dart';
 import 'package:tailor_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:tailor_app/features/auth/presentation/cubit/auth_state.dart';
 import 'package:tailor_app/features/auth/presentation/widgets/auth_scaffold.dart';
-import 'package:tailor_app/features/auth/presentation/widgets/password_field.dart';
+import 'package:tailor_app/features/auth/presentation/widgets/password_field.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -49,8 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
       listener: (context, state) =>
           AppSnackbar.showError(context, state.errorMessage!),
       child: AuthScaffold(
-        title: 'Welcome back',
-        subtitle: 'Sign in to manage your shop.',
+        title: S.current.welcomeBack,
+        subtitle: S.current.signInToManage,
         child: Form(
           key: _formKey,
           child: Column(
@@ -63,8 +64,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 autofillHints: const [AutofillHints.email],
                 validator: Validators.email,
                 onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                decoration: InputDecoration(
+                  labelText: S.current.email,
                   prefixIcon: Icon(Icons.mail_outline),
                 ),
               ),
@@ -72,18 +73,18 @@ class _LoginScreenState extends State<LoginScreen> {
               PasswordField(
                 controller: _passwordController,
                 focusNode: _passwordFocus,
-                label: 'Password',
+                label: S.current.password,
                 textInputAction: TextInputAction.done,
                 autofillHints: const [AutofillHints.password],
                 validator: (value) =>
-                    Validators.requiredField(value, fieldName: 'Password'),
+                    Validators.requiredField(value, fieldName: S.current.password),
                 onSubmitted: _submit,
               ),
               Align(
-                alignment: Alignment.centerRight,
+                alignment: AlignmentDirectional.centerEnd,
                 child: TextButton(
                   onPressed: () => context.push(AppRoutes.forgotPassword),
-                  child: const Text('Forgot password?'),
+                  child: Text(S.current.forgotPassword),
                 ),
               ),
               const SizedBox(height: 8),
@@ -101,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Colors.white,
                     ),
                   )
-                      : const Text('Sign in'),
+                      : Text(S.current.signIn),
                 ),
               ),
               const SizedBox(height: 24),
@@ -109,10 +110,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 alignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  const Text("Don't have an account?"),
+                  Text(S.current.noAccount),
                   TextButton(
                     onPressed: () => context.push(AppRoutes.signup),
-                    child: const Text('Create one'),
+                    child: Text(S.current.createOne),
                   ),
                 ],
               ),

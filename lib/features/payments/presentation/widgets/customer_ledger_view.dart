@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/money.dart';
 import 'package:tailor_app/core/widgets/adaptive_wrap.dart';
 import 'package:tailor_app/core/widgets/state_views.dart';
@@ -14,7 +14,8 @@ import 'package:tailor_app/features/orders/presentation/widgets/status_chips.dar
 import 'package:tailor_app/features/payments/data/ledger_calculator.dart';
 import 'package:tailor_app/features/payments/presentation/cubit/payments_cubit.dart';
 import 'package:tailor_app/features/payments/presentation/cubit/payments_state.dart';
-import 'package:tailor_app/features/payments/presentation/widgets/payment_tile.dart';
+import 'package:tailor_app/features/payments/presentation/widgets/payment_tile.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// One customer's money: totals, each order's balance, and every payment.
 /// [onOpenOrder] decides where tapping an order goes.
@@ -39,23 +40,23 @@ class CustomerLedgerView extends StatelessWidget {
     }
     if (ordersState.status == OrdersStatus.failure) {
       return ErrorState(
-        message: ordersState.errorMessage ?? 'Could not load orders.',
+        message: ordersState.errorMessage ?? S.current.couldNotLoadOrders,
         onRetry: context.read<OrdersCubit>().retry,
       );
     }
     if (paymentsState.status == PaymentsStatus.failure) {
       return ErrorState(
-        message: paymentsState.errorMessage ?? 'Could not load payments.',
+        message: paymentsState.errorMessage ?? S.current.couldNotLoadPayments,
         onRetry: context.read<PaymentsCubit>().retry,
       );
     }
 
     final orders = ordersState.forCustomer(customerId);
     if (orders.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.account_balance_wallet_outlined,
-        title: 'No balance yet',
-        message: 'Payments and balances appear here once this customer has an order.',
+        title: S.current.noBalanceYet,
+        message: S.current.paymentsAppearOnceOrder,
       );
     }
 
@@ -75,29 +76,29 @@ class CustomerLedgerView extends StatelessWidget {
               minItemWidth: 150,
               children: [
                 StatTile(
-                  label: 'Total billed',
+                  label: S.current.totalBilled,
                   value: Money.pkr(balance.totalBilled),
                   icon: Icons.receipt_long_outlined,
                 ),
                 StatTile(
-                  label: 'Paid',
+                  label: S.current.paid,
                   value: Money.pkr(balance.totalPaid),
-                  color: AppColors.success,
+                  color: context.pal.success,
                   icon: Icons.check_circle_outline,
                 ),
                 StatTile(
-                  label: 'Outstanding',
+                  label: S.current.outstanding,
                   value: Money.pkr(balance.outstanding),
                   color: balance.outstanding > 0
-                      ? AppColors.danger
-                      : AppColors.success,
+                      ? context.pal.danger
+                      : context.pal.success,
                   icon: Icons.account_balance_wallet_outlined,
                 ),
               ],
             ),
             const SizedBox(height: 24),
             Text(
-              'Orders',
+              S.current.orders,
               style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
@@ -107,18 +108,18 @@ class CustomerLedgerView extends StatelessWidget {
             ],
             const SizedBox(height: 16),
             Text(
-              'Payment history',
+              S.current.paymentHistory,
               style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             if (payments.isEmpty)
-              const Card(
+              Card(
                 child: Padding(
                   padding: EdgeInsets.all(16),
                   child: Text(
-                    'No payments yet.',
+                    S.current.noPaymentsYetDot,
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.slate500),
+                    style: TextStyle(color: context.pal.slate500),
                   ),
                 ),
               )
@@ -130,7 +131,7 @@ class CustomerLedgerView extends StatelessWidget {
                     children: [
                       for (final payment in payments)
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsetsDirectional.only(bottom: 12),
                           child: PaymentTile(
                             payment: payment,
                             subtitleExtra: orderNumbers[payment.orderId] == null
@@ -192,13 +193,11 @@ class _OrderBalanceRow extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 cancelled
-                    ? 'Cancelled · not counted in the balance'
-                    : 'Total ${Money.pkr(order.totalAmount)} · '
-                    'Paid ${Money.pkr(order.totalPaid)} · '
-                    'Remaining ${Money.pkr(remaining)}',
+                    ? S.current.cancelledNotCounted
+                    : S.current.ledgerOrderLine(Money.pkr(order.totalAmount), Money.pkr(order.totalPaid), Money.pkr(remaining)),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: AppColors.slate500, fontSize: 13),
+                style: TextStyle(color: context.pal.slate500, fontSize: 13),
               ),
             ],
           ),

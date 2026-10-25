@@ -1,3 +1,4 @@
+import 'package:tailor_app/core/l10n/app_strings.dart';
 /// Turns Firebase Auth error codes into messages a shop owner understands.
 class AuthErrorMapper {
   AuthErrorMapper._();
@@ -5,34 +6,32 @@ class AuthErrorMapper {
   static String message(String code) {
     switch (code) {
       case 'invalid-email':
-        return 'That email address does not look right.';
+        return S.current.authInvalidEmail;
       case 'user-disabled':
-        return 'This account has been disabled.';
+        return S.current.authDisabled;
       case 'user-not-found':
       case 'wrong-password':
       case 'invalid-credential':
-        return 'Incorrect email or password.';
+        return S.current.authBadCredentials;
       case 'email-already-in-use':
-        return 'An account with this email already exists.';
+        return S.current.authEmailInUse;
       case 'weak-password':
-        return 'Please choose a stronger password.';
+        return S.current.authWeakPassword;
       case 'too-many-requests':
-        return 'Too many attempts. Please wait a moment and try again.';
+        return S.current.authTooManyAttempts;
       case 'network-request-failed':
-        return 'No internet connection. Please check your connection and try again.';
+        return S.current.authNoInternet;
       case 'operation-not-allowed':
-        return 'Email sign-in is not enabled for this app.';
+        return S.current.authEmailNotEnabled;
       case 'password-does-not-meet-requirements':
-        return 'That password is not strong enough. Use upper and lower case '
-            'letters, a number and a symbol.';
+        return S.current.authPasswordNotStrong;
       case 'configuration-not-found':
       case 'internal-error':
       case 'invalid-api-key':
       case 'app-not-authorized':
-        return 'Sign-in is not set up correctly for this app. Please contact '
-            'support.';
+        return S.current.authNotSetUp;
       default:
-        return 'Something went wrong. Please try again.';
+        return S.current.errorGeneric;
     }
   }
 }

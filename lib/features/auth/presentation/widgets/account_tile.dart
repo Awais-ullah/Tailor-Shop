@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/features/auth/presentation/cubit/auth_cubit.dart';
-import 'package:tailor_app/features/auth/presentation/cubit/auth_state.dart';
+import 'package:tailor_app/features/auth/presentation/cubit/auth_state.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// Shows who is logged in, with a Sign out button.
 class AccountTile extends StatelessWidget {
@@ -14,18 +15,18 @@ class AccountTile extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Sign out?'),
-        content: const Text(
-          'You can sign back in at any time. Your data stays safely stored.',
+        title: Text(S.current.signOutQuestion),
+        content: Text(
+          S.current.signOutBody,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: Text(S.current.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Sign out'),
+            child: Text(S.current.signOut),
           ),
         ],
       ),
@@ -42,7 +43,7 @@ class AccountTile extends StatelessWidget {
       builder: (context, state) {
         final user = state.user;
         final storedName = user?.displayName?.trim() ?? '';
-        final name = storedName.isEmpty ? 'Shop owner' : storedName;
+        final name = storedName.isEmpty ? S.current.shopOwner : storedName;
 
         return SizedBox(
           width: double.infinity,
@@ -57,11 +58,11 @@ class AccountTile extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 24,
-                        backgroundColor: AppColors.primarySoft,
+                        backgroundColor: context.pal.primarySoft,
                         child: Text(
                           name[0].toUpperCase(),
-                          style: const TextStyle(
-                            color: AppColors.primary,
+                          style: TextStyle(
+                            color: context.pal.primary,
                             fontWeight: FontWeight.w700,
                             fontSize: 18,
                           ),
@@ -83,7 +84,7 @@ class AccountTile extends StatelessWidget {
                               user?.email ?? '',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: AppColors.slate500),
+                              style: TextStyle(color: context.pal.slate500),
                             ),
                           ],
                         ),
@@ -95,7 +96,7 @@ class AccountTile extends StatelessWidget {
                     onPressed:
                     state.isBusy ? null : () => _confirmSignOut(context),
                     icon: const Icon(Icons.logout),
-                    label: const Text('Sign out'),
+                    label: Text(S.current.signOut),
                   ),
                 ],
               ),

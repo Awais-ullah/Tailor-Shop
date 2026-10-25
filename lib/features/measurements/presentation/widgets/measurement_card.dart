@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/utils/app_dates.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/inch_format.dart';
 import 'package:tailor_app/features/measurements/data/measurement_templates.dart';
-import 'package:tailor_app/features/measurements/data/models/measurement.dart';
+import 'package:tailor_app/features/measurements/data/models/measurement.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// One measurement set in a list. Pass [customerName] on the global
 /// list (where the customer isn't obvious); leave it null on a
@@ -42,27 +43,27 @@ class MeasurementCard extends StatelessWidget {
 
     final updatedAt = measurement.updatedAt;
     final date =
-    updatedAt == null ? 'Just now' : DateFormat('d MMM').format(updatedAt);
+    updatedAt == null ? S.current.justNow : AppDates.short(updatedAt);
 
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.primarySoft,
-                  borderRadius: BorderRadius.circular(10),
+                  color: context.pal.primarySoft,
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
                   measurement.garmentType.icon,
-                  color: AppColors.primary,
+                  color: context.pal.primary,
                   size: 22,
                 ),
               ),
@@ -83,16 +84,16 @@ class MeasurementCard extends StatelessWidget {
                         subtitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: AppColors.slate700),
+                        style: TextStyle(color: context.pal.slate700),
                       ),
                     if (summary.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
-                        extra > 0 ? '$summary · +$extra more' : summary,
+                        extra > 0 ? S.current.summaryPlusMore(summary, extra) : summary,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.slate500,
+                        style: TextStyle(
+                          color: context.pal.slate500,
                           fontSize: 13,
                         ),
                       ),
@@ -103,7 +104,7 @@ class MeasurementCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 date,
-                style: const TextStyle(color: AppColors.slate500, fontSize: 12),
+                style: TextStyle(color: context.pal.slate500, fontSize: 12),
               ),
             ],
           ),

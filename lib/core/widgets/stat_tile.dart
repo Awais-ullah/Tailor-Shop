@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 
-/// A small "label + big number" card, used for summaries.
-/// Pass [onTap] to make it a button.
+/// A rounded summary card: tinted icon, big number, small label.
+/// Pass [onTap] to make it a button. [color] tints the icon and the number.
 class StatTile extends StatelessWidget {
   const StatTile({
     super.key,
@@ -21,13 +21,15 @@ class StatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tint = color ?? context.pal.primary;
+
     return Material(
-      color: Colors.white,
+      color: context.pal.surface,
+      elevation: 2,
+      shadowColor: const Color(0x2407343E),
+      surfaceTintColor: Colors.transparent,
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.slate200),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -36,37 +38,41 @@ class StatTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  if (icon != null) ...[
-                    Icon(icon, size: 18, color: color ?? AppColors.slate500),
-                    const SizedBox(width: 6),
-                  ],
-                  Expanded(
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelMedium
-                          ?.copyWith(color: AppColors.slate500),
-                    ),
+              if (icon != null) ...[
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: tint.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(13),
                   ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              // Scales down instead of overflowing when the number is very large.
+                  child: Icon(icon, size: 22, color: tint),
+                ),
+                const SizedBox(height: 12),
+              ],
+              // Scales down instead of overflowing when the number is large.
               FittedBox(
                 fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: Text(
                   value,
                   maxLines: 1,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  style: TextStyle(
+                    fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: color,
+                    color: color ?? context.pal.slate900,
                   ),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: context.pal.slate500,
                 ),
               ),
             ],

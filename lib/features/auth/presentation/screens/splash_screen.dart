@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:tailor_app/core/router/splash_gate.dart';
 import 'package:tailor_app/core/theme/app_colors.dart';
-import 'package:tailor_app/core/widgets/app_logo.dart';
+import 'package:tailor_app/core/widgets/app_logo.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
-/// Continues the phone's own splash: your icon starts exactly where the
-/// native splash left it (centre of the screen), then lifts up while a
-/// needle stitches a line beneath it and "Tailor Shop" appears.
-/// When it finishes it opens [gate] so the router can move on.
+/// The only splash the user sees: your icon pops in, a needle stitches a
+/// line beneath it, then the title appears. When it finishes it opens
+/// [gate] so the router can move on.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key, required this.gate});
 
@@ -22,36 +22,13 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   // Tweak these to taste.
-  static const Duration _duration = Duration(milliseconds: 1900);
-  static const double _iconBox = 110; // final icon size
+  static const Duration _duration = Duration(milliseconds: 1600);
+  static const double _logoSize = 120;
   static const double _stitchWidth = 220;
 
-  /// The icon's size in the phone's native splash, so the first frame
-  /// matches it. Change this if your icon looks like it "jumps" at the start.
-  static const double _nativeIconSize = 135;
-
-  // Fixed heights, so the starting position can be calculated exactly.
-  static const double _gapAfterIcon = 24;
-  static const double _stitchHeight = 32;
-  static const double _gapAfterStitch = 12;
-  static const double _titleHeight = 64;
-  static const double _gapAfterTitle = 24;
-  static const double _loaderSize = 24;
-
-  static const double _groupHeight = _iconBox +
-      _gapAfterIcon +
-      _stitchHeight +
-      _gapAfterStitch +
-      _titleHeight +
-      _gapAfterTitle +
-      _loaderSize;
-
-  /// How far DOWN the whole group starts, so the icon sits at the exact
-  /// centre of the screen, just like in the native splash.
-  static const double _startOffset = _groupHeight / 2 - _iconBox / 2;
-
   late final AnimationController _controller;
-  late final Animation<double> _lift;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoFade;
   late final Animation<double> _stitch;
   late final Animation<double> _titleFade;
   late final Animation<double> _loaderFade;
@@ -65,17 +42,23 @@ class _SplashScreenState extends State<SplashScreen>
     _controller = AnimationController(vsync: this, duration: _duration);
 
     // Each part of the animation owns a slice of the timeline (0.0 - 1.0).
-    _lift = CurvedAnimation(
+    _logoScale = Tween<double>(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.35, curve: Curves.easeOutBack),
+      ),
+    );
+    _logoFade = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.06, 0.42, curve: Curves.easeInOutCubic),
+      curve: const Interval(0.0, 0.25, curve: Curves.easeOut),
     );
     _stitch = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.32, 0.80, curve: Curves.easeInOut),
+      curve: const Interval(0.30, 0.80, curve: Curves.easeInOut),
     );
     _titleFade = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.72, 0.95, curve: Curves.easeOut),
+      curve: const Interval(0.70, 0.95, curve: Curves.easeOut),
     );
     _loaderFade = CurvedAnimation(
       parent: _controller,
@@ -92,8 +75,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _prepareAndPlay() async {
-    // Load the icon BEFORE the phone's splash is removed, so there is no
-    // blank flash between the two.
+    // Load the icon first, so it never pops in half-loaded.
     try {
       await precacheImage(const AssetImage(AppLogo.asset), context);
     } catch (_) {
@@ -101,6 +83,7 @@ class _SplashScreenState extends State<SplashScreen>
     }
     if (!mounted) return;
 
+    // Hand over from the phone's plain white splash to this animation.
     FlutterNativeSplash.remove();
 
     final reduceMotion = WidgetsBinding
@@ -127,7 +110,6 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    const startScale = _nativeIconSize / _iconBox;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -141,74 +123,64 @@ class _SplashScreenState extends State<SplashScreen>
             child: AnimatedBuilder(
               animation: _controller,
               builder: (context, _) {
-                final lift = _lift.value;
-
-                return Transform.translate(
-                  offset: Offset(0, _startOffset * (1 - lift)),
-                  child: SizedBox(
-                    height: _groupHeight,
-                    child: Column(
-                      children: [
-                        Transform.scale(
-                          scale: startScale + (1 - startScale) * lift,
-                          child: Image.asset(
-                            AppLogo.asset,
-                            width: _iconBox,
-                            height: _iconBox,
-                            fit: BoxFit.contain,
-                            filterQuality: FilterQuality.medium,
-                          ),
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Opacity(
+                      opacity: _logoFade.value.clamp(0.0, 1.0),
+                      child: Transform.scale(
+                        scale: _logoScale.value,
+                        child: Image.asset(
+                          AppLogo.asset,
+                          width: _logoSize,
+                          height: _logoSize,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.medium,
                         ),
-                        const SizedBox(height: _gapAfterIcon),
-                        SizedBox(
-                          width: _stitchWidth,
-                          height: _stitchHeight,
-                          child: CustomPaint(
-                            painter: _StitchPainter(progress: _stitch.value),
-                          ),
-                        ),
-                        const SizedBox(height: _gapAfterStitch),
-                        SizedBox(
-                          height: _titleHeight,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Opacity(
-                              opacity: _titleFade.value.clamp(0.0, 1.0),
-                              child: Transform.translate(
-                                offset: Offset(0, 12 * (1 - _titleFade.value)),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Tailor Shop',
-                                      style: textTheme.headlineMedium?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Orders · Measurements · Payments',
-                                      style: textTheme.bodyMedium
-                                          ?.copyWith(color: AppColors.slate500),
-                                    ),
-                                  ],
-                                ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    SizedBox(
+                      width: _stitchWidth,
+                      height: 32,
+                      child: CustomPaint(
+                        painter: _StitchPainter(progress: _stitch.value),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Opacity(
+                      opacity: _titleFade.value.clamp(0.0, 1.0),
+                      child: Transform.translate(
+                        offset: Offset(0, 12 * (1 - _titleFade.value)),
+                        child: Column(
+                          children: [
+                            Text(
+                              S.current.appName,
+                              style: textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                          ),
+                            const SizedBox(height: 4),
+                            Text(
+                              S.current.splashTagline,
+                              style: textTheme.bodyMedium
+                                  ?.copyWith(color: AppColors.slate500),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: _gapAfterTitle),
-                        Opacity(
-                          opacity: _loaderFade.value.clamp(0.0, 1.0),
-                          child: const SizedBox(
-                            width: _loaderSize,
-                            height: _loaderSize,
-                            child: CircularProgressIndicator(strokeWidth: 2.5),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 28),
+                    // Always takes up space, so nothing jumps when it appears.
+                    Opacity(
+                      opacity: _loaderFade.value.clamp(0.0, 1.0),
+                      child: const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                      ),
+                    ),
+                  ],
                 );
               },
             ),

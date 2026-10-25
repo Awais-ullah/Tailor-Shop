@@ -4,17 +4,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tailor_app/core/l10n/locale_controller.dart';
 import 'package:tailor_app/core/router/app_router.dart';
 import 'package:tailor_app/core/theme/app_colors.dart';
 import 'package:tailor_app/core/theme/app_theme.dart';
+import 'package:tailor_app/core/theme/theme_controller.dart';
 import 'package:tailor_app/features/auth/data/repositories/auth_repository.dart';
 import 'package:tailor_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:tailor_app/features/shop/data/repositories/shop_repository.dart';
 import 'package:tailor_app/features/shop/data/shop_bootstrapper.dart';
 import 'package:tailor_app/firebase_options.dart';
+
+import 'package:tailor_app/core/l10n/app_strings.dart';
+
+import 'core/currency/currency_controller.dart';
 
 Future<void> main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
@@ -46,6 +53,13 @@ Future<void> main() async {
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
 
+  // Load the saved Light / Dark / System choice before the first frame.
+  await ThemeController.instance.load();
+
+  // Load the saved language so the very first screen is already translated.
+  await LocaleController.instance.load();
+  await CurrencyController.instance.load();
+
   runApp(const TailorShopApp());
 }
 
@@ -54,7 +68,7 @@ class _FriendlyError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Directionality(
+    return Directionality(
       textDirection: TextDirection.ltr,
       child: ColoredBox(
         color: Colors.white,
@@ -62,7 +76,7 @@ class _FriendlyError extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.all(24),
             child: Text(
-              'Something went wrong on this screen.\nPlease go back and try again.',
+              S.current.errorScreen,
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.slate700, fontSize: 15),
             ),
@@ -91,6 +105,9 @@ class _TailorShopAppState extends State<TailorShopApp> {
   @override
   void initState() {
     super.initState();
+    ThemeController.instance.addListener(_onThemeChanged);
+    LocaleController.instance.addListener(_onLanguageChanged);
+    CurrencyController.instance.addListener(_onLanguageChanged);
     _authRepository = AuthRepository();
     _shopRepository = ShopRepository();
     _authCubit = AuthCubit(_authRepository);
@@ -101,8 +118,30 @@ class _TailorShopAppState extends State<TailorShopApp> {
     _router = buildAppRouter(_authCubit);
   }
 
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _onLanguageChanged() {
+    if (!mounted) return;
+    setState(() {});
+    // Many screens hold text in places Flutter would not refresh by itself,
+    // so rebuild every widget once the new language is active.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      void rebuild(Element element) {
+        element.markNeedsBuild();
+        element.visitChildren(rebuild);
+      }
+
+      WidgetsBinding.instance.rootElement?.visitChildren(rebuild);
+    });
+  }
+
   @override
   void dispose() {
+    ThemeController.instance.removeListener(_onThemeChanged);
+    LocaleController.instance.removeListener(_onLanguageChanged);
+    CurrencyController.instance.removeListener(_onLanguageChanged);
     _router.dispose();
     _shopBootstrapper.dispose();
     _authCubit.close();
@@ -119,9 +158,19 @@ class _TailorShopAppState extends State<TailorShopApp> {
       child: BlocProvider.value(
         value: _authCubit,
         child: MaterialApp.router(
-          title: 'Tailor Shop',
+          onGenerateTitle: (_) => S.current.appName,
+          locale: (AppLanguage.byCode(S.current.code) ?? AppLanguage.all.first)
+              .locale,
+          supportedLocales: AppLanguage.supportedLocales,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: ThemeController.instance.value,
           routerConfig: _router,
           // Keeps layouts intact when a phone's font size is set very large,
           // while still respecting the user's text size up to 150%.

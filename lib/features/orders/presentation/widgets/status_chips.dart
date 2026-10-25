@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/features/orders/data/order_status.dart';
 
 /// A small tinted label with an icon, used for order and payment status.
@@ -16,6 +17,7 @@ class StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = context.pal.adapt(this.color);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(

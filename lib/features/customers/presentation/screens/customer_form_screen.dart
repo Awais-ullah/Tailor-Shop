@@ -9,7 +9,8 @@ import 'package:tailor_app/core/utils/validators.dart';
 import 'package:tailor_app/core/widgets/app_snackbar.dart';
 import 'package:tailor_app/core/widgets/state_views.dart';
 import 'package:tailor_app/features/customers/data/models/customer.dart';
-import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit.dart';
+import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// Used for both "New customer" (customerId == null) and "Edit customer".
 class CustomerFormScreen extends StatefulWidget {
@@ -69,19 +70,18 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
     final proceed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Phone number already used'),
+        title: Text(S.current.phoneAlreadyUsed),
         content: Text(
-          '${duplicate.name} already has this phone number. Families often '
-              'share a number, so you can still continue.',
+          S.current.phoneDuplicateBody(duplicate.name),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Go back'),
+            child: Text(S.current.goBack),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Save anyway'),
+            child: Text(S.current.saveAnyway),
           ),
         ],
       ),
@@ -116,14 +116,14 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
       if (!mounted) return;
       AppSnackbar.showSuccess(
         context,
-        _isEditing ? 'Customer updated' : 'Customer added',
+        _isEditing ? S.current.customerUpdated : S.current.customerAdded,
       );
       context.pop();
     } on AppFailure catch (failure) {
       if (mounted) AppSnackbar.showError(context, failure.message);
     } catch (_) {
       if (mounted) {
-        AppSnackbar.showError(context, 'Something went wrong. Please try again.');
+        AppSnackbar.showError(context, S.current.errorGeneric);
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -134,12 +134,12 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
   Widget build(BuildContext context) {
     if (_isEditing && _existing == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Edit customer')),
+        appBar: AppBar(title: Text(S.current.editCustomer)),
         body: EmptyState(
           icon: Icons.person_off_outlined,
-          title: 'Customer not found',
-          message: 'This customer may have been removed.',
-          actionLabel: 'Back to customers',
+          title: S.current.customerNotFound,
+          message: S.current.customerMayBeRemoved,
+          actionLabel: S.current.backToCustomers,
           onAction: () => context.go(AppRoutes.customers),
         ),
       );
@@ -147,7 +147,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit customer' : 'New customer'),
+        title: Text(_isEditing ? S.current.editCustomer : S.current.newCustomer),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -165,10 +165,10 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                     textInputAction: TextInputAction.next,
                     inputFormatters: [LengthLimitingTextInputFormatter(100)],
                     validator: (value) =>
-                        Validators.requiredField(value, fieldName: 'Name'),
+                        Validators.requiredField(value, fieldName: S.current.name),
                     onFieldSubmitted: (_) => _phoneFocus.requestFocus(),
-                    decoration: const InputDecoration(
-                      labelText: 'Full name *',
+                    decoration: InputDecoration(
+                      labelText: S.current.fullNameRequired,
                       prefixIcon: Icon(Icons.person_outline),
                     ),
                   ),
@@ -184,8 +184,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                     ],
                     validator: PhoneUtils.validateOptional,
                     onFieldSubmitted: (_) => _addressFocus.requestFocus(),
-                    decoration: const InputDecoration(
-                      labelText: 'Phone number',
+                    decoration: InputDecoration(
+                      labelText: S.current.phoneNumber,
                       hintText: '0300-1234567',
                       prefixIcon: Icon(Icons.phone_outlined),
                     ),
@@ -200,8 +200,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                     textInputAction: TextInputAction.next,
                     inputFormatters: [LengthLimitingTextInputFormatter(300)],
                     onFieldSubmitted: (_) => _notesFocus.requestFocus(),
-                    decoration: const InputDecoration(
-                      labelText: 'Address',
+                    decoration: InputDecoration(
+                      labelText: S.current.address,
                       alignLabelWithHint: true,
                       prefixIcon: Icon(Icons.location_on_outlined),
                     ),
@@ -214,8 +214,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                     maxLines: 5,
                     textCapitalization: TextCapitalization.sentences,
                     inputFormatters: [LengthLimitingTextInputFormatter(1000)],
-                    decoration: const InputDecoration(
-                      labelText: 'Notes',
+                    decoration: InputDecoration(
+                      labelText: S.current.notes,
                       alignLabelWithHint: true,
                       prefixIcon: Icon(Icons.notes_outlined),
                     ),
@@ -226,7 +226,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: _saving ? null : () => context.pop(),
-                          child: const Text('Cancel'),
+                          child: Text(S.current.cancel),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -242,7 +242,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                               color: Colors.white,
                             ),
                           )
-                              : const Text('Save'),
+                              : Text(S.current.save),
                         ),
                       ),
                     ],

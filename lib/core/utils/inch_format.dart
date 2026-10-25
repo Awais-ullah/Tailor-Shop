@@ -1,3 +1,4 @@
+import 'package:tailor_app/core/l10n/app_strings.dart';
 /// Reads and displays measurements in inches, the way tailors write them.
 class InchFormat {
   InchFormat._();
@@ -57,9 +58,9 @@ class InchFormat {
     if (text.isEmpty) return null;
 
     final parsed = parse(text);
-    if (parsed == null) return 'Use a number like 15, 15.5 or 15 1/2';
-    if (parsed <= 0) return 'Must be greater than 0';
-    if (parsed > maxInches) return 'Must be ${maxInches.toInt()} or less';
+    if (parsed == null) return S.current.inchFormatHint;
+    if (parsed <= 0) return S.current.mustBeGreaterThanZero;
+    if (parsed > maxInches) return S.current.mustBeAtMost(maxInches.toInt());
     return null;
   }
 

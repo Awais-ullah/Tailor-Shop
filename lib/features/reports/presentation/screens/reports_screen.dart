@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/money.dart';
 import 'package:tailor_app/core/widgets/adaptive_wrap.dart';
 import 'package:tailor_app/core/widgets/state_views.dart';
@@ -16,7 +16,8 @@ import 'package:tailor_app/features/payments/data/ledger_calculator.dart';
 import 'package:tailor_app/features/payments/data/payment_method.dart';
 import 'package:tailor_app/features/payments/presentation/cubit/payments_cubit.dart';
 import 'package:tailor_app/features/payments/presentation/cubit/payments_state.dart';
-import 'package:tailor_app/features/reports/data/report_summary.dart';
+import 'package:tailor_app/features/reports/data/report_summary.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -43,17 +44,17 @@ class _ReportsScreenState extends State<ReportsScreen> {
       content = const LoadingView();
     } else if (customersState.status == CustomersStatus.failure) {
       content = ErrorState(
-        message: customersState.errorMessage ?? 'Could not load customers.',
+        message: customersState.errorMessage ?? S.current.couldNotLoadCustomers,
         onRetry: context.read<CustomersCubit>().retry,
       );
     } else if (ordersState.status == OrdersStatus.failure) {
       content = ErrorState(
-        message: ordersState.errorMessage ?? 'Could not load orders.',
+        message: ordersState.errorMessage ?? S.current.couldNotLoadOrders,
         onRetry: context.read<OrdersCubit>().retry,
       );
     } else if (paymentsState.status == PaymentsStatus.failure) {
       content = ErrorState(
-        message: paymentsState.errorMessage ?? 'Could not load payments.',
+        message: paymentsState.errorMessage ?? S.current.couldNotLoadPayments,
         onRetry: context.read<PaymentsCubit>().retry,
       );
     } else {
@@ -66,7 +67,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reports')),
+      appBar: AppBar(title: Text(S.current.reports)),
       body: Column(
         children: [
           Center(
@@ -132,32 +133,32 @@ class _ReportContent extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 900),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 24),
           children: [
             AdaptiveWrap(
               minItemWidth: 170,
               children: [
                 StatTile(
-                  label: 'Income',
+                  label: S.current.income,
                   value: Money.pkr(summary.income),
                   icon: Icons.payments_outlined,
-                  color: AppColors.success,
+                  color: context.pal.success,
                 ),
                 StatTile(
-                  label: 'New orders',
+                  label: S.current.newOrders,
                   value: '${summary.newOrders}',
                   icon: Icons.receipt_long_outlined,
                 ),
                 StatTile(
-                  label: 'Order value booked',
+                  label: S.current.orderValueBooked,
                   value: Money.pkr(summary.bookedValue),
                   icon: Icons.sell_outlined,
                 ),
                 StatTile(
-                  label: 'Outstanding now',
+                  label: S.current.outstandingNow,
                   value: Money.pkr(outstandingNow),
                   icon: Icons.account_balance_wallet_outlined,
-                  color: outstandingNow > 0 ? AppColors.danger : null,
+                  color: outstandingNow > 0 ? context.pal.danger : null,
                 ),
               ],
             ),
@@ -165,8 +166,8 @@ class _ReportContent extends StatelessWidget {
               const SizedBox(height: 16),
               _Section(
                 title: period == ReportPeriod.thisYear
-                    ? 'Income by month'
-                    : 'Income by day',
+                    ? S.current.incomeByMonth
+                    : S.current.incomeByDay,
                 child: _IncomeChart(buckets: summary.buckets),
               ),
             ],
@@ -175,9 +176,9 @@ class _ReportContent extends StatelessWidget {
               minItemWidth: 380,
               children: [
                 _Section(
-                  title: 'Income by payment method',
+                  title: S.current.incomeByMethod,
                   child: summary.income == 0
-                      ? const _EmptyLine('No payments in this period.')
+                      ? _EmptyLine(S.current.noPaymentsPeriod)
                       : Column(
                     children: [
                       for (final method in PaymentMethod.values)
@@ -188,15 +189,15 @@ class _ReportContent extends StatelessWidget {
                           ),
                           fraction: (summary.incomeByMethod[method] ?? 0) /
                               summary.income,
-                          color: AppColors.success,
+                          color: context.pal.success,
                         ),
                     ],
                   ),
                 ),
                 _Section(
-                  title: 'Orders by status',
+                  title: S.current.ordersByStatus,
                   child: statusMax == 0
-                      ? const _EmptyLine('No orders in this period.')
+                      ? _EmptyLine(S.current.noOrdersPeriod)
                       : Column(
                     children: [
                       for (final status in OrderStatus.values)
@@ -214,14 +215,14 @@ class _ReportContent extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _Section(
-              title: 'Top customers',
+              title: S.current.topCustomers,
               child: summary.topCustomers.isEmpty
-                  ? const _EmptyLine('No orders in this period.')
+                  ? _EmptyLine(S.current.noOrdersPeriod)
                   : Column(
                 children: [
                   for (final top in summary.topCustomers)
                     _TopCustomerRow(
-                      name: names[top.customerId] ?? 'Unknown customer',
+                      name: names[top.customerId] ?? S.current.unknownCustomer,
                       orderCount: top.orderCount,
                       billed: top.billed,
                     ),
@@ -274,7 +275,7 @@ class _EmptyLine extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Text(text, style: const TextStyle(color: AppColors.slate500)),
+      child: Text(text, style: TextStyle(color: context.pal.slate500)),
     );
   }
 }
@@ -296,7 +297,7 @@ class _BarRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsetsDirectional.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -324,7 +325,7 @@ class _BarRow extends StatelessWidget {
               value: fraction.clamp(0.0, 1.0),
               minHeight: 8,
               color: color,
-              backgroundColor: AppColors.slate100,
+              backgroundColor: context.pal.slate100,
             ),
           ),
         ],
@@ -347,16 +348,16 @@ class _TopCustomerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsetsDirectional.only(bottom: 12),
       child: Row(
         children: [
           CircleAvatar(
             radius: 16,
-            backgroundColor: AppColors.primarySoft,
+            backgroundColor: context.pal.primarySoft,
             child: Text(
               name.isEmpty ? '?' : String.fromCharCode(name.runes.first).toUpperCase(),
-              style: const TextStyle(
-                color: AppColors.primary,
+              style: TextStyle(
+                color: context.pal.primary,
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
               ),
@@ -374,8 +375,8 @@ class _TopCustomerRow extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  '$orderCount ${orderCount == 1 ? 'order' : 'orders'}',
-                  style: const TextStyle(color: AppColors.slate500, fontSize: 13),
+                  S.current.orderCountLabel(orderCount),
+                  style: TextStyle(color: context.pal.slate500, fontSize: 13),
                 ),
               ],
             ),
@@ -406,8 +407,8 @@ class _IncomeChart extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          peak == 0 ? 'No income in this period yet.' : 'Highest: ${Money.pkr(peak)}',
-          style: const TextStyle(color: AppColors.slate500, fontSize: 13),
+          peak == 0 ? S.current.noIncomePeriod : S.current.highest(Money.pkr(peak)),
+          style: TextStyle(color: context.pal.slate500, fontSize: 13),
         ),
         const SizedBox(height: 8),
         SizedBox(
@@ -434,8 +435,8 @@ class _IncomeChart extends StatelessWidget {
                             child: DecoratedBox(
                               decoration: BoxDecoration(
                                 color: bucket.amount == 0
-                                    ? AppColors.slate200
-                                    : AppColors.primary,
+                                    ? context.pal.slate200
+                                    : context.pal.primary,
                                 borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(3),
                                 ),
@@ -456,11 +457,11 @@ class _IncomeChart extends StatelessWidget {
           children: [
             Text(
               buckets.first.label,
-              style: const TextStyle(color: AppColors.slate500, fontSize: 12),
+              style: TextStyle(color: context.pal.slate500, fontSize: 12),
             ),
             Text(
               buckets.last.label,
-              style: const TextStyle(color: AppColors.slate500, fontSize: 12),
+              style: TextStyle(color: context.pal.slate500, fontSize: 12),
             ),
           ],
         ),

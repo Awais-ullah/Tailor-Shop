@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tailor_app/core/router/app_routes.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/utils/money.dart';
 import 'package:tailor_app/core/widgets/adaptive_wrap.dart';
@@ -14,7 +14,8 @@ import 'package:tailor_app/features/orders/presentation/cubit/orders_state.dart'
 import 'package:tailor_app/features/payments/data/ledger_calculator.dart';
 import 'package:tailor_app/features/payments/presentation/cubit/payments_cubit.dart';
 import 'package:tailor_app/features/payments/presentation/cubit/payments_state.dart';
-import 'package:tailor_app/features/payments/presentation/widgets/payment_tile.dart';
+import 'package:tailor_app/features/payments/presentation/widgets/payment_tile.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 class LedgerScreen extends StatelessWidget {
   const LedgerScreen({super.key});
@@ -31,19 +32,19 @@ class LedgerScreen extends StatelessWidget {
       body = const LoadingView();
     } else if (ordersState.status == OrdersStatus.failure) {
       body = ErrorState(
-        message: ordersState.errorMessage ?? 'Could not load orders.',
+        message: ordersState.errorMessage ?? S.current.couldNotLoadOrders,
         onRetry: context.read<OrdersCubit>().retry,
       );
     } else if (paymentsState.status == PaymentsStatus.failure) {
       body = ErrorState(
-        message: paymentsState.errorMessage ?? 'Could not load payments.',
+        message: paymentsState.errorMessage ?? S.current.couldNotLoadPayments,
         onRetry: context.read<PaymentsCubit>().retry,
       );
     } else {
       final names = {
         for (final customer in customersState.customers) customer.id: customer.name,
       };
-      String nameOf(String id) => names[id] ?? 'Unknown customer';
+      String nameOf(String id) => names[id] ?? S.current.unknownCustomer;
 
       final balances = LedgerCalculator.outstandingBalances(ordersState.orders);
       final totalOutstanding = LedgerCalculator.totalOutstanding(ordersState.orders);
@@ -65,35 +66,35 @@ class LedgerScreen extends StatelessWidget {
                 minItemWidth: 200,
                 children: [
                   StatTile(
-                    label: 'Total outstanding',
+                    label: S.current.totalOutstanding,
                     value: Money.pkr(totalOutstanding),
                     color: totalOutstanding > 0
-                        ? AppColors.danger
-                        : AppColors.success,
+                        ? context.pal.danger
+                        : context.pal.success,
                     icon: Icons.account_balance_wallet_outlined,
                   ),
                   StatTile(
-                    label: 'Collected today',
+                    label: S.current.collectedToday,
                     value: Money.pkr(collectedToday),
-                    color: AppColors.success,
+                    color: context.pal.success,
                     icon: Icons.payments_outlined,
                   ),
                 ],
               ),
               const SizedBox(height: 24),
               Text(
-                'Outstanding balances',
+                S.current.outstandingBalances,
                 style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               if (balances.isEmpty)
-                const Card(
+                Card(
                   child: Padding(
                     padding: EdgeInsets.all(20),
                     child: Text(
-                      'All settled up. Nobody owes anything right now.',
+                      S.current.allSettledUpNow,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.slate500),
+                      style: TextStyle(color: context.pal.slate500),
                     ),
                   ),
                 )
@@ -109,14 +110,14 @@ class LedgerScreen extends StatelessWidget {
                         child: Row(
                           children: [
                             CircleAvatar(
-                              backgroundColor: AppColors.primarySoft,
+                              backgroundColor: context.pal.primarySoft,
                               child: Text(
                                 customersState
                                     .customerById(balance.customerId)
                                     ?.initial ??
                                     '?',
-                                style: const TextStyle(
-                                  color: AppColors.primary,
+                                style: TextStyle(
+                                  color: context.pal.primary,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -135,10 +136,9 @@ class LedgerScreen extends StatelessWidget {
                                     ),
                                   ),
                                   Text(
-                                    '${balance.openOrders} open '
-                                        '${balance.openOrders == 1 ? 'order' : 'orders'}',
-                                    style: const TextStyle(
-                                      color: AppColors.slate500,
+                                    S.current.openOrdersCount(balance.openOrders),
+                                    style: TextStyle(
+                                      color: context.pal.slate500,
                                       fontSize: 13,
                                     ),
                                   ),
@@ -148,9 +148,9 @@ class LedgerScreen extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text(
                               Money.pkr(balance.outstanding),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.danger,
+                                color: context.pal.danger,
                               ),
                             ),
                           ],
@@ -162,18 +162,18 @@ class LedgerScreen extends StatelessWidget {
                 ],
               const SizedBox(height: 16),
               Text(
-                'Recent payments',
+                S.current.recentPayments,
                 style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               if (recent.isEmpty)
-                const Card(
+                Card(
                   child: Padding(
                     padding: EdgeInsets.all(20),
                     child: Text(
-                      'No payments recorded yet.',
+                      S.current.noPaymentsYet,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.slate500),
+                      style: TextStyle(color: context.pal.slate500),
                     ),
                   ),
                 )
@@ -185,7 +185,7 @@ class LedgerScreen extends StatelessWidget {
                       children: [
                         for (final payment in recent)
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsetsDirectional.only(bottom: 12),
                             child: PaymentTile(
                               payment: payment,
                               subtitleExtra: [
@@ -206,7 +206,7 @@ class LedgerScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ledger')),
+      appBar: AppBar(title: Text(S.current.ledger)),
       body: body,
     );
   }

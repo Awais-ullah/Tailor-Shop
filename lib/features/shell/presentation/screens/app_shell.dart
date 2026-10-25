@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tailor_app/core/responsive/breakpoints.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/features/shell/presentation/widgets/app_bottom_bar.dart';
 import 'package:tailor_app/features/sync/presentation/widgets/sync_banner.dart';
 
-import '../../../../core/widgets/app_logo.dart';
+import '../../../../core/widgets/app_logo.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// One navigation entry. [branchIndex] must match the order of the
 /// branches in lib/core/router/app_router.dart.
@@ -20,24 +21,24 @@ class _NavItem {
 
 // Branch order: 0 dashboard, 1 customers, 2 measurements, 3 orders,
 // 4 ledger, 5 reports, 6 settings, 7 more
-const List<_NavItem> _mobileItems = [
-  _NavItem('Home', Icons.home_outlined, Icons.home_rounded, 0),
-  _NavItem('Customers', Icons.people_outline, Icons.people_rounded, 1),
-  _NavItem('Orders', Icons.receipt_long_outlined, Icons.receipt_long, 3),
-  _NavItem('Ledger', Icons.account_balance_wallet_outlined,
+List<_NavItem> get _mobileItems => [
+  _NavItem(S.current.home, Icons.home_outlined, Icons.home_rounded, 0),
+  _NavItem(S.current.customers, Icons.people_outline, Icons.people_rounded, 1),
+  _NavItem(S.current.orders, Icons.receipt_long_outlined, Icons.receipt_long, 3),
+  _NavItem(S.current.ledger, Icons.account_balance_wallet_outlined,
       Icons.account_balance_wallet, 4),
-  _NavItem('More', Icons.more_horiz, Icons.more_horiz, 7),
+  _NavItem(S.current.more, Icons.more_horiz, Icons.more_horiz, 7),
 ];
 
-const List<_NavItem> _wideItems = [
-  _NavItem('Dashboard', Icons.dashboard_outlined, Icons.dashboard_rounded, 0),
-  _NavItem('Customers', Icons.people_outline, Icons.people_rounded, 1),
-  _NavItem('Measurements', Icons.straighten_outlined, Icons.straighten, 2),
-  _NavItem('Orders', Icons.receipt_long_outlined, Icons.receipt_long, 3),
-  _NavItem('Ledger', Icons.account_balance_wallet_outlined,
+List<_NavItem> get _wideItems => [
+  _NavItem(S.current.dashboard, Icons.dashboard_outlined, Icons.dashboard_rounded, 0),
+  _NavItem(S.current.customers, Icons.people_outline, Icons.people_rounded, 1),
+  _NavItem(S.current.measurements, Icons.straighten_outlined, Icons.straighten, 2),
+  _NavItem(S.current.orders, Icons.receipt_long_outlined, Icons.receipt_long, 3),
+  _NavItem(S.current.ledger, Icons.account_balance_wallet_outlined,
       Icons.account_balance_wallet, 4),
-  _NavItem('Reports', Icons.bar_chart_outlined, Icons.bar_chart_rounded, 5),
-  _NavItem('Settings', Icons.settings_outlined, Icons.settings_rounded, 6),
+  _NavItem(S.current.reports, Icons.bar_chart_outlined, Icons.bar_chart_rounded, 5),
+  _NavItem(S.current.settings, Icons.settings_outlined, Icons.settings_rounded, 6),
 ];
 
 class AppShell extends StatelessWidget {
@@ -182,23 +183,23 @@ class _Sidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 248,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(right: BorderSide(color: AppColors.slate200)),
+      decoration: BoxDecoration(
+        color: context.pal.surface,
+        border: BorderDirectional(end: BorderSide(color: context.pal.slate200)),
       ),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 24, 20, 16),
               child: Row(
                 children: [
                   const AppLogo(size: 40),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Tailor Shop',
+                      S.current.appName,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context)
                           .textTheme
@@ -241,12 +242,12 @@ class _SidebarTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : AppColors.slate700;
+    final color = selected ? context.pal.primary : context.pal.slate700;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsetsDirectional.only(bottom: 4),
       child: Material(
-        color: selected ? AppColors.primarySoft : Colors.transparent,
+        color: selected ? context.pal.primarySoft : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),

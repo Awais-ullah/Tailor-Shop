@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/utils/money.dart';
 import 'package:tailor_app/features/orders/presentation/widgets/status_chips.dart';
-import 'package:tailor_app/features/payments/data/models/payment.dart';
+import 'package:tailor_app/features/payments/data/models/payment.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// One payment line. [subtitleExtra] adds context such as "#12" or a
 /// customer name. [trailing] is for actions (for example "Void").
@@ -37,14 +38,14 @@ class PaymentTile extends StatelessWidget {
           height: 40,
           decoration: BoxDecoration(
             color: voided
-                ? AppColors.slate100
-                : AppColors.success.withValues(alpha: 0.12),
+                ? context.pal.slate100
+                : context.pal.success.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
             payment.method.icon,
             size: 20,
-            color: voided ? AppColors.slate500 : AppColors.success,
+            color: voided ? context.pal.slate500 : context.pal.success,
           ),
         ),
         const SizedBox(width: 12),
@@ -56,7 +57,7 @@ class PaymentTile extends StatelessWidget {
                 Money.pkr(payment.amount),
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
-                  color: voided ? AppColors.slate500 : null,
+                  color: voided ? context.pal.slate500 : null,
                   decoration: voided ? TextDecoration.lineThrough : null,
                 ),
               ),
@@ -64,17 +65,17 @@ class PaymentTile extends StatelessWidget {
                 details,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: AppColors.slate500, fontSize: 13),
+                style: TextStyle(color: context.pal.slate500, fontSize: 13),
               ),
             ],
           ),
         ),
         if (voided)
-          const Padding(
-            padding: EdgeInsets.only(left: 8),
+          Padding(
+            padding: EdgeInsetsDirectional.only(start: 8),
             child: StatusPill(
-              label: 'Voided',
-              color: AppColors.slate500,
+              label: S.current.voided,
+              color: context.pal.slate500,
               icon: Icons.block,
             ),
           ),

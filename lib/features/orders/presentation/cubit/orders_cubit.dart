@@ -15,7 +15,8 @@ import 'package:tailor_app/features/orders/data/order_status.dart';
 import 'package:tailor_app/features/orders/data/repositories/order_repository.dart';
 import 'package:tailor_app/features/orders/presentation/cubit/orders_state.dart';
 import 'package:tailor_app/features/payments/data/models/payment.dart';
-import 'package:tailor_app/features/payments/data/payment_method.dart';
+import 'package:tailor_app/features/payments/data/payment_method.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 class OrdersCubit extends Cubit<OrdersState> {
   OrdersCubit(this._repository, {required this.shopId})
@@ -77,16 +78,16 @@ class OrdersCubit extends Cubit<OrdersState> {
   }) async {
     final existing = id == null ? null : state.byId(id);
     if (id != null && existing == null) {
-      throw const AppFailure('This order could not be found.');
+      throw AppFailure(S.current.orderNotFoundCubit);
     }
     if (items.isEmpty) {
-      throw const AppFailure('Add at least one item.');
+      throw AppFailure(S.current.addAtLeastOneItem);
     }
 
     final orderDay = AppDates.dateOnly(orderDate);
     final deliveryDay = AppDates.dateOnly(deliveryDate);
     if (deliveryDay.isBefore(orderDay)) {
-      throw const AppFailure('Delivery date cannot be before the order date.');
+      throw AppFailure(S.current.deliveryBeforeOrder);
     }
 
     // All money maths happens in OrderMoney, never here or in the UI.
@@ -95,18 +96,18 @@ class OrdersCubit extends Cubit<OrdersState> {
     // An advance only exists when creating a new order.
     final advance = existing == null ? advanceAmount : 0;
     if (advance < 0) {
-      throw const AppFailure('The advance cannot be negative.');
+      throw AppFailure(S.current.advanceNegative);
     }
     if (advance > total) {
       throw AppFailure(
-        "The advance can't be more than the order total (${Money.pkr(total)}).",
+        S.current.advanceTooMuch(Money.pkr(total)),
       );
     }
 
     final paid = existing?.totalPaid ?? advance;
     if (total < paid) {
       throw AppFailure(
-        "The total can't be less than the ${Money.pkr(paid)} already paid.",
+        S.current.totalLessThanPaid(Money.pkr(paid)),
       );
     }
 
@@ -138,7 +139,7 @@ class OrdersCubit extends Cubit<OrdersState> {
         customerId: customerId,
         amount: advance,
         method: advanceMethod,
-        note: 'Advance',
+        note: S.current.advance,
         paidAt: orderDay,
       );
       await awaitWriteBriefly(

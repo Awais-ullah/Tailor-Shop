@@ -1,3 +1,4 @@
+import 'package:tailor_app/core/l10n/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:tailor_app/core/theme/app_colors.dart';
 
@@ -14,11 +15,14 @@ enum OrderStatus {
   delivered('delivered', 'Delivered', Icons.task_alt, AppColors.primary),
   cancelled('cancelled', 'Cancelled', Icons.cancel_outlined, AppColors.danger);
 
-  const OrderStatus(this.id, this.label, this.icon, this.color);
+  const OrderStatus(this.id, this._label, this.icon, this.color);
 
   /// Stored in Firestore. Never change these strings.
   final String id;
-  final String label;
+  final String _label;
+
+  /// Translated name (falls back to the English text).
+  String get label => S.current.dyn('order.$id', _label);
   final IconData icon;
   final Color color;
 
@@ -59,11 +63,14 @@ enum PaymentStatus {
   partial('partial', 'Partial', Icons.timelapse, AppColors.warning),
   paid('paid', 'Paid', Icons.check_circle, AppColors.success);
 
-  const PaymentStatus(this.id, this.label, this.icon, this.color);
+  const PaymentStatus(this.id, this._label, this.icon, this.color);
 
   /// Stored in Firestore. Never change these strings.
   final String id;
-  final String label;
+  final String _label;
+
+  /// Translated name (falls back to the English text).
+  String get label => S.current.dyn('pay.$id', _label);
   final IconData icon;
   final Color color;
 

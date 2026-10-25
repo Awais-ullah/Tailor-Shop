@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/errors/app_failure.dart';
 import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/inch_format.dart';
 import 'package:tailor_app/core/widgets/adaptive_wrap.dart';
 import 'package:tailor_app/core/widgets/app_snackbar.dart';
@@ -12,6 +13,8 @@ import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit
 import 'package:tailor_app/features/measurements/data/measurement_templates.dart';
 import 'package:tailor_app/features/measurements/data/models/measurement.dart';
 import 'package:tailor_app/features/measurements/presentation/cubit/measurements_cubit.dart';
+
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// Read-only view of one measurement set: the page a tailor looks at
 /// while cutting. [editLocation] is supplied by the router, because the
@@ -35,20 +38,19 @@ class MeasurementDetailScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete these measurements?'),
-        content: const Text(
-          'This cannot be undone. Orders that already used these '
-              'measurements keep their own copy.',
+        title: Text(S.current.deleteMeasurementsQ),
+        content: Text(
+          S.current.deleteMeasurementsBody,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: Text(S.current.cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete'),
+            child: Text(S.current.delete),
           ),
         ],
       ),
@@ -58,7 +60,7 @@ class MeasurementDetailScreen extends StatelessWidget {
     try {
       await cubit.delete(measurement.id);
       if (!context.mounted) return;
-      AppSnackbar.showSuccess(context, 'Measurements deleted');
+      AppSnackbar.showSuccess(context, S.current.measurementsDeleted);
       context.pop();
     } on AppFailure catch (failure) {
       if (context.mounted) AppSnackbar.showError(context, failure.message);
@@ -75,9 +77,9 @@ class MeasurementDetailScreen extends StatelessWidget {
         appBar: AppBar(),
         body: EmptyState(
           icon: Icons.straighten_outlined,
-          title: 'Measurements not found',
-          message: 'These measurements may have been deleted.',
-          actionLabel: 'Go back',
+          title: S.current.measurementsNotFound,
+          message: S.current.measurementsMayBeDeleted,
+          actionLabel: S.current.goBack,
           onAction: () => context.pop(),
         ),
       );
@@ -97,7 +99,7 @@ class MeasurementDetailScreen extends StatelessWidget {
 
     final updatedAt = measurement.updatedAt;
     final updated =
-    updatedAt == null ? 'Just now' : DateFormat('d MMM y').format(updatedAt);
+    updatedAt == null ? S.current.justNow : AppDates.medium(updatedAt);
 
     final String initialChar = customer != null && customer.name.isNotEmpty
         ? customer.name[0].toUpperCase()
@@ -108,12 +110,12 @@ class MeasurementDetailScreen extends StatelessWidget {
         title: Text(measurement.garmentType.label),
         actions: [
           IconButton(
-            tooltip: 'Edit measurements',
+            tooltip: S.current.editMeasurements,
             icon: const Icon(Icons.edit_outlined),
             onPressed: () => context.push(editLocation),
           ),
           IconButton(
-            tooltip: 'Delete measurements',
+            tooltip: S.current.deleteMeasurements,
             icon: const Icon(Icons.delete_outline),
             onPressed: () => _confirmDelete(context, measurement),
           ),
@@ -133,11 +135,11 @@ class MeasurementDetailScreen extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 24,
-                        backgroundColor: AppColors.primarySoft,
+                        backgroundColor: context.pal.primarySoft,
                         child: Text(
                           initialChar,
-                          style: const TextStyle(
-                            color: AppColors.primary,
+                          style: TextStyle(
+                            color: context.pal.primary,
                             fontWeight: FontWeight.w700,
                             fontSize: 18,
                           ),
@@ -149,7 +151,7 @@ class MeasurementDetailScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              customer?.name ?? 'Unknown customer',
+                              customer?.name ?? S.current.unknownCustomer,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: textTheme.titleMedium
@@ -159,11 +161,11 @@ class MeasurementDetailScreen extends StatelessWidget {
                               [
                                 if (measurement.label.isNotEmpty)
                                   measurement.label,
-                                'Updated $updated',
+                                S.current.updatedAt(updated),
                               ].join(' · '),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: AppColors.slate500),
+                              style: TextStyle(color: context.pal.slate500),
                             ),
                           ],
                         ),
@@ -180,15 +182,15 @@ class MeasurementDetailScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Measurements (inches)',
+                        S.current.measurementsInches,
                         style: textTheme.titleSmall
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: 12),
                       if (filledFields.isEmpty)
-                        const Text(
-                          'No measurements recorded.',
-                          style: TextStyle(color: AppColors.slate500),
+                        Text(
+                          S.current.noMeasurementsRecorded,
+                          style: TextStyle(color: context.pal.slate500),
                         )
                       else
                         AdaptiveWrap(
@@ -196,6 +198,7 @@ class MeasurementDetailScreen extends StatelessWidget {
                           children: [
                             for (final field in filledFields)
                               _ValueTile(
+                                icon: field.icon,
                                 label: field.label,
                                 value: InchFormat.format(
                                   measurement.values[field.key]!,
@@ -216,14 +219,14 @@ class MeasurementDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Style',
+                          S.current.style,
                           style: textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 12),
                         for (final group in chosenStyles)
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsetsDirectional.only(bottom: 8),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -231,8 +234,8 @@ class MeasurementDetailScreen extends StatelessWidget {
                                   width: 120,
                                   child: Text(
                                     group.label,
-                                    style: const TextStyle(
-                                      color: AppColors.slate500,
+                                    style: TextStyle(
+                                      color: context.pal.slate500,
                                     ),
                                   ),
                                 ),
@@ -264,7 +267,7 @@ class MeasurementDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Notes',
+                          S.current.notes,
                           style: textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
@@ -284,8 +287,13 @@ class MeasurementDetailScreen extends StatelessWidget {
 }
 
 class _ValueTile extends StatelessWidget {
-  const _ValueTile({required this.label, required this.value});
+  const _ValueTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
+  final IconData icon;
   final String label;
   final String value;
 
@@ -294,21 +302,29 @@ class _ValueTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.slate50,
+        color: context.pal.slate50,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.slate200),
+        border: Border.all(color: context.pal.slate200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context)
-                .textTheme
-                .labelMedium
-                ?.copyWith(color: AppColors.slate500),
+          Row(
+            children: [
+              Icon(icon, size: 16, color: context.pal.slate500),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(color: context.pal.slate500),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 4),
           Text(

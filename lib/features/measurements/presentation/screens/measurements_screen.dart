@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tailor_app/core/router/app_routes.dart';
 import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/widgets/app_snackbar.dart';
 import 'package:tailor_app/core/widgets/state_views.dart';
 import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit.dart';
@@ -12,6 +13,10 @@ import 'package:tailor_app/features/measurements/presentation/cubit/measurements
 import 'package:tailor_app/features/measurements/presentation/cubit/measurements_state.dart';
 import 'package:tailor_app/features/measurements/presentation/widgets/garment_picker_sheet.dart';
 import 'package:tailor_app/features/measurements/presentation/widgets/measurement_card.dart';
+
+import 'package:tailor_app/core/l10n/app_strings.dart';
+
+import '../../../../core/widgets/fade_slide_in.dart';
 
 /// Pick a customer, pick a garment, then open the form.
 Future<void> _startNewMeasurement(BuildContext context) async {
@@ -25,7 +30,7 @@ Future<void> _startNewMeasurement(BuildContext context) async {
   if (customers.isEmpty) {
     AppSnackbar.showError(
       context,
-      'Add a customer first, then record their measurements.',
+      S.current.addCustomerFirstMeasure,
     );
     return;
   }
@@ -60,13 +65,13 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     final cubit = context.read<MeasurementsCubit>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Measurements')),
+      appBar: AppBar(title: Text(S.current.measurements)),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: context.pal.brand,
+        foregroundColor: AppColors.gold,
         onPressed: () => _startNewMeasurement(context),
         icon: const Icon(Icons.add),
-        label: const Text('New measurements'),
+        label: Text(S.current.newMeasurements),
       ),
       body: Column(
         children: [
@@ -74,20 +79,20 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 900),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
                 child: TextField(
                   controller: _searchController,
                   onChanged: cubit.setQuery,
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
-                    hintText: 'Search by customer or label',
+                    hintText: S.current.searchCustomerOrLabel,
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: ValueListenableBuilder<TextEditingValue>(
                       valueListenable: _searchController,
                       builder: (context, value, _) => value.text.isEmpty
                           ? const SizedBox.shrink()
                           : IconButton(
-                        tooltip: 'Clear search',
+                        tooltip: S.current.clearSearch,
                         icon: const Icon(Icons.close),
                         onPressed: () {
                           _searchController.clear();
@@ -128,7 +133,7 @@ class _GarmentFilterBar extends StatelessWidget {
               child: Row(
                 children: [
                   ChoiceChip(
-                    label: const Text('All'),
+                    label: Text(S.current.all),
                     selected: state.garmentFilter == null,
                     onSelected: (_) => cubit.setGarmentFilter(null),
                   ),
@@ -163,7 +168,7 @@ class _Content extends StatelessWidget {
         return const LoadingView();
       case MeasurementsStatus.failure:
         return ErrorState(
-          message: state.errorMessage ?? 'Could not load measurements.',
+          message: state.errorMessage ?? S.current.couldNotLoadMeasurements,
           onRetry: context.read<MeasurementsCubit>().retry,
         );
       case MeasurementsStatus.loaded:
@@ -174,7 +179,7 @@ class _Content extends StatelessWidget {
     final names = {
       for (final customer in customersState.customers) customer.id: customer.name,
     };
-    String nameOf(String id) => names[id] ?? 'Unknown customer';
+    String nameOf(String id) => names[id] ?? S.current.unknownCustomer;
 
     final items = state.filtered(nameOf);
 
@@ -183,17 +188,17 @@ class _Content extends StatelessWidget {
           state.query.trim().isNotEmpty || state.garmentFilter != null;
 
       if (hasFilters) {
-        return const EmptyState(
+        return EmptyState(
           icon: Icons.search_off,
-          title: 'No matches',
-          message: 'No measurements match your search or filter.',
+          title: S.current.noMatches,
+          message: S.current.noMeasurementsMatch,
         );
       }
       return EmptyState(
         icon: Icons.straighten_outlined,
-        title: 'No measurements yet',
-        message: "Your customers' saved measurements will appear here.",
-        actionLabel: 'New measurements',
+        title: S.current.noMeasurementsYet,
+        message: S.current.savedMeasurementsAppear,
+        actionLabel: S.current.newMeasurements,
         onAction: () => _startNewMeasurement(context),
       );
     }
@@ -203,15 +208,19 @@ class _Content extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 900),
         child: ListView.separated(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 96),
           itemCount: items.length,
           separatorBuilder: (_, _) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
             final item = items[index];
-            return MeasurementCard(
-              measurement: item,
-              customerName: nameOf(item.customerId),
-              onTap: () => context.push(AppRoutes.measurementDetails(item.id)),
+            return FadeSlideIn(
+              delay: Duration(milliseconds: 35 * (index < 8 ? index : 8)),
+              child: MeasurementCard(
+                measurement: item,
+                customerName: nameOf(item.customerId),
+                onTap: () =>
+                    context.push(AppRoutes.measurementDetails(item.id)),
+              ),
             );
           },
         ),

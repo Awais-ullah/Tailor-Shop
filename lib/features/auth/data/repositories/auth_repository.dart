@@ -2,7 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tailor_app/core/errors/app_failure.dart';
 import 'package:tailor_app/features/auth/data/auth_error_mapper.dart';
-import 'package:tailor_app/features/auth/data/models/app_user.dart';
+import 'package:tailor_app/features/auth/data/models/app_user.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// The ONLY class that talks to Firebase Auth.
 /// Everything above it (Cubits, screens) works with AppUser and AppFailure.
@@ -72,8 +73,8 @@ class AuthRepository {
       debugPrint('[AuthRepository] unexpected error: $e');
       throw AppFailure(
         kDebugMode
-            ? 'Something went wrong. [$e]'
-            : 'Something went wrong. Please try again.',
+            ? S.current.errorGenericDetail(e)
+            : S.current.errorGeneric,
       );
     }
   }

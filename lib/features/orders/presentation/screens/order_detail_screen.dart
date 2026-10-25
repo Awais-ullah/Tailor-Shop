@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tailor_app/core/errors/app_failure.dart';
 import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/utils/inch_format.dart';
 import 'package:tailor_app/core/utils/money.dart';
@@ -17,7 +18,8 @@ import 'package:tailor_app/features/orders/data/order_status.dart';
 import 'package:tailor_app/features/orders/presentation/cubit/orders_cubit.dart';
 import 'package:tailor_app/features/orders/presentation/widgets/status_chips.dart';
 
-import '../../../payments/presentation/widgets/order_payments_section.dart';
+import '../../../payments/presentation/widgets/order_payments_section.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// [editLocation] is supplied by the router, because the edit route
 /// depends on where this screen was opened from.
@@ -43,19 +45,18 @@ class OrderDetailScreen extends StatelessWidget {
         final proceed = await showDialog<bool>(
           context: context,
           builder: (dialogContext) => AlertDialog(
-            title: const Text('Balance still due'),
+            title: Text(S.current.balanceStillDue),
             content: Text(
-              'The customer still owes ${Money.pkr(order.remainingAmount)}. '
-                  'Mark as delivered anyway?',
+              S.current.customerStillOwes(Money.pkr(order.remainingAmount)),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Not yet'),
+                child: Text(S.current.notYet),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Deliver anyway'),
+                child: Text(S.current.deliverAnyway),
               ),
             ],
           ),
@@ -64,7 +65,7 @@ class OrderDetailScreen extends StatelessWidget {
       }
       await cubit.updateStatus(order.id, status);
       if (context.mounted) {
-        AppSnackbar.showSuccess(context, 'Marked as ${status.label.toLowerCase()}');
+        AppSnackbar.showSuccess(context, S.current.markedAs(status.label.toLowerCase()));
       }
     } on AppFailure catch (failure) {
       if (context.mounted) AppSnackbar.showError(context, failure.message);
@@ -81,15 +82,15 @@ class OrderDetailScreen extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 560),
       builder: (sheetContext) => SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsetsDirectional.only(bottom: 8),
                 child: Text(
-                  'Change status',
+                  S.current.changeStatus,
                   style: Theme.of(sheetContext)
                       .textTheme
                       .titleMedium
@@ -99,10 +100,10 @@ class OrderDetailScreen extends StatelessWidget {
               for (final status in OrderStatus.values)
                 ListTile(
                   minTileHeight: 56,
-                  leading: Icon(status.icon, color: status.color),
+                  leading: Icon(status.icon, color: context.pal.adapt(status.color)),
                   title: Text(status.label),
                   trailing: status == order.status
-                      ? const Icon(Icons.check, color: AppColors.primary)
+                      ? Icon(Icons.check, color: context.pal.primary)
                       : null,
                   onTap: () => Navigator.pop(sheetContext, status),
                 ),
@@ -117,20 +118,19 @@ class OrderDetailScreen extends StatelessWidget {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Cancel this order?'),
-          content: const Text(
-            'The order stays in your records as cancelled. You can change '
-                'its status again later if this was a mistake.',
+          title: Text(S.current.cancelOrderQ),
+          content: Text(
+            S.current.cancelOrderBody,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Keep order'),
+              child: Text(S.current.keepOrder),
             ),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Cancel order'),
+              child: Text(S.current.cancelOrder),
             ),
           ],
         ),
@@ -150,9 +150,9 @@ class OrderDetailScreen extends StatelessWidget {
         appBar: AppBar(),
         body: EmptyState(
           icon: Icons.receipt_long_outlined,
-          title: 'Order not found',
-          message: 'This order may have been removed.',
-          actionLabel: 'Go back',
+          title: S.current.orderNotFound,
+          message: S.current.orderMayBeRemoved,
+          actionLabel: S.current.goBack,
           onAction: () => context.pop(),
         ),
       );
@@ -165,10 +165,10 @@ class OrderDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order #${order.orderNumber}'),
+        title: Text(S.current.orderNumber(order.orderNumber)),
         actions: [
           IconButton(
-            tooltip: 'Edit order',
+            tooltip: S.current.editOrder,
             icon: const Icon(Icons.edit_outlined),
             onPressed: () => context.push(editLocation),
           ),
@@ -192,7 +192,7 @@ class OrderDetailScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              customer?.name ?? 'Unknown customer',
+                              customer?.name ?? S.current.unknownCustomer,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: textTheme.titleMedium
@@ -209,14 +209,14 @@ class OrderDetailScreen extends StatelessWidget {
                         runSpacing: 8,
                         children: [
                           _DateInfo(
-                            label: 'Ordered',
+                            label: S.current.ordered,
                             value: AppDates.medium(order.orderDate),
                           ),
                           _DateInfo(
-                            label: 'Due',
+                            label: S.current.due,
                             value: AppDates.medium(order.deliveryDate),
                             highlight: order.isOverdue,
-                            suffix: order.isOverdue ? 'Overdue' : null,
+                            suffix: order.isOverdue ? S.current.overdue : null,
                           ),
                         ],
                       ),
@@ -234,16 +234,16 @@ class OrderDetailScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'Progress',
+                        S.current.progress,
                         style: textTheme.titleSmall
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: 12),
                       if (order.status == OrderStatus.cancelled)
-                        const Text(
-                          'This order was cancelled.',
+                        Text(
+                          S.current.orderWasCancelled,
                           style: TextStyle(
-                            color: AppColors.danger,
+                            color: context.pal.danger,
                             fontWeight: FontWeight.w600,
                           ),
                         )
@@ -259,12 +259,12 @@ class OrderDetailScreen extends StatelessWidget {
                             nextStatus,
                           ),
                           icon: Icon(nextStatus.icon),
-                          label: Text('Mark as ${nextStatus.label.toLowerCase()}'),
+                          label: Text(S.current.markAsNext(nextStatus.label.toLowerCase())),
                         ),
                       if (nextStatus != null) const SizedBox(height: 8),
                       OutlinedButton(
                         onPressed: () => _changeStatus(context, order),
-                        child: const Text('Change status'),
+                        child: Text(S.current.changeStatus),
                       ),
                     ],
                   ),
@@ -280,14 +280,14 @@ class OrderDetailScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Items',
+                        S.current.items,
                         style: textTheme.titleSmall
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: 12),
                       for (final item in order.items)
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsetsDirectional.only(bottom: 10),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -303,8 +303,8 @@ class OrderDetailScreen extends StatelessWidget {
                                     ),
                                     Text(
                                       '${item.quantity} × ${Money.pkr(item.unitPrice)}',
-                                      style: const TextStyle(
-                                        color: AppColors.slate500,
+                                      style: TextStyle(
+                                        color: context.pal.slate500,
                                       ),
                                     ),
                                   ],
@@ -337,7 +337,7 @@ class OrderDetailScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              'Payment',
+                              S.current.payment,
                               style: textTheme.titleSmall
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
@@ -346,16 +346,16 @@ class OrderDetailScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      _MoneyRow(label: 'Order total', amount: order.totalAmount),
-                      _MoneyRow(label: 'Paid', amount: order.totalPaid),
+                      _MoneyRow(label: S.current.orderTotal, amount: order.totalAmount),
+                      _MoneyRow(label: S.current.paid, amount: order.totalPaid),
                       const Divider(height: 24),
                       _MoneyRow(
-                        label: 'Remaining',
+                        label: S.current.remaining,
                         amount: order.remainingAmount,
                         bold: true,
                         color: order.remainingAmount > 0
-                            ? AppColors.danger
-                            : AppColors.success,
+                            ? context.pal.danger
+                            : context.pal.success,
                       ),
                     ],
                   ),
@@ -374,14 +374,14 @@ class OrderDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Measurements (inches)',
+                          S.current.measurementsInches,
                           style: textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 12),
                         for (final measurement in order.measurements)
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsetsDirectional.only(bottom: 12),
                             child: _SnapshotBlock(measurement: measurement),
                           ),
                       ],
@@ -399,7 +399,7 @@ class OrderDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Notes',
+                          S.current.notes,
                           style: textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
@@ -433,7 +433,7 @@ class _DateInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = highlight ? AppColors.danger : null;
+    final color = highlight ? context.pal.danger : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -444,7 +444,7 @@ class _DateInfo extends StatelessWidget {
           style: Theme.of(context)
               .textTheme
               .labelMedium
-              ?.copyWith(color: AppColors.slate500),
+              ?.copyWith(color: context.pal.slate500),
         ),
         Text(
           suffix == null ? value : '$value · $suffix',
@@ -537,8 +537,8 @@ class _DonePill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const StatusPill(
-      label: 'Done',
+    return StatusPill(
+      label: S.current.done,
       color: AppColors.success,
       icon: Icons.check,
     );
@@ -555,13 +555,13 @@ class _UpcomingPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.slate100,
+        color: context.pal.slate100,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: AppColors.slate500,
+        style: TextStyle(
+          color: context.pal.slate500,
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
@@ -585,6 +585,7 @@ class StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = context.pal.adapt(this.color);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -638,16 +639,16 @@ class _SnapshotBlock extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.slate50,
+        color: context.pal.slate50,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.slate200),
+        border: Border.all(color: context.pal.slate200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(measurement.garmentType.icon, size: 18, color: AppColors.primary),
+              Icon(measurement.garmentType.icon, size: 18, color: context.pal.primary),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -670,9 +671,9 @@ class _SnapshotBlock extends StatelessWidget {
                   padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: context.pal.surface,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.slate200),
+                    border: Border.all(color: context.pal.slate200),
                   ),
                   child: Text(
                     '${field.label} ${InchFormat.format(measurement.values[field.key]!)}',
@@ -683,18 +684,18 @@ class _SnapshotBlock extends StatelessWidget {
           ),
           for (final line in styleLines)
             Padding(
-              padding: const EdgeInsets.only(top: 6),
+              padding: const EdgeInsetsDirectional.only(top: 6),
               child: Text(
                 line,
-                style: const TextStyle(color: AppColors.slate700, fontSize: 13),
+                style: TextStyle(color: context.pal.slate700, fontSize: 13),
               ),
             ),
           if (measurement.notes.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 6),
+              padding: const EdgeInsetsDirectional.only(top: 6),
               child: Text(
                 measurement.notes,
-                style: const TextStyle(color: AppColors.slate500, fontSize: 13),
+                style: TextStyle(color: context.pal.slate500, fontSize: 13),
               ),
             ),
         ],

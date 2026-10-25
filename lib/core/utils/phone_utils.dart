@@ -1,3 +1,4 @@
+import 'package:tailor_app/core/l10n/app_strings.dart';
 class PhoneUtils {
   PhoneUtils._();
 
@@ -21,7 +22,7 @@ class PhoneUtils {
 
     final digits = text.replaceAll(RegExp(r'[^0-9]'), '');
     if (digits.length < 7 || digits.length > 15) {
-      return 'Enter a valid phone number';
+      return S.current.phoneInvalid;
     }
     return null;
   }

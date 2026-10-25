@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/errors/app_failure.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/inch_format.dart';
 import 'package:tailor_app/core/widgets/adaptive_wrap.dart';
 import 'package:tailor_app/core/widgets/app_snackbar.dart';
@@ -14,6 +14,8 @@ import 'package:tailor_app/features/measurements/data/measurement_templates.dart
 import 'package:tailor_app/features/measurements/data/models/measurement.dart';
 import 'package:tailor_app/features/measurements/presentation/cubit/measurements_cubit.dart';
 
+import 'package:tailor_app/core/l10n/app_strings.dart';
+
 /// New measurements: pass [customerId] and [garmentType].
 /// Editing: pass [measurementId] only.
 class MeasurementFormScreen extends StatefulWidget {
@@ -22,11 +24,16 @@ class MeasurementFormScreen extends StatefulWidget {
     this.measurementId,
     this.customerId,
     this.garmentType,
+    this.returnToCaller = false,
   });
 
   final String? measurementId;
   final String? customerId;
   final GarmentType? garmentType;
+
+  /// true when another screen (the order form) opened this form with
+  /// Navigator.push and wants the new measurement's id back.
+  final bool returnToCaller;
 
   @override
   State<MeasurementFormScreen> createState() => _MeasurementFormScreenState();
@@ -47,6 +54,16 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
   bool _saving = false;
 
   bool get _isEditing => widget.measurementId != null;
+
+  /// Closes the screen. [result] (the saved id) goes back to the screen that
+  /// opened this form, when it asked for it.
+  void _close([String? result]) {
+    if (widget.returnToCaller) {
+      Navigator.of(context).pop(result);
+    } else {
+      context.pop();
+    }
+  }
 
   GarmentTemplate? get _template =>
       _garmentType == null ? null : MeasurementTemplates.of(_garmentType!);
@@ -154,7 +171,7 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
       if (parsed != null) values[field.key] = parsed;
     }
     if (values.isEmpty) {
-      AppSnackbar.showError(context, 'Enter at least one measurement.');
+      AppSnackbar.showError(context, S.current.enterAtLeastOneMeasurement);
       return;
     }
 
@@ -168,7 +185,7 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
 
     setState(() => _saving = true);
     try {
-      await cubit.saveMeasurement(
+      final savedId = await cubit.saveMeasurement(
         id: widget.measurementId,
         customerId: _customerId!,
         garmentType: _garmentType!,
@@ -180,14 +197,14 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
       if (!mounted) return;
       AppSnackbar.showSuccess(
         context,
-        _isEditing ? 'Measurements updated' : 'Measurements saved',
+        _isEditing ? S.current.measurementsUpdated : S.current.measurementsSaved,
       );
-      context.pop();
+      _close(savedId);
     } on AppFailure catch (failure) {
       if (mounted) AppSnackbar.showError(context, failure.message);
     } catch (_) {
       if (mounted) {
-        AppSnackbar.showError(context, 'Something went wrong. Please try again.');
+        AppSnackbar.showError(context, S.current.errorGeneric);
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -201,13 +218,13 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
 
     if (template == null || customerId == null || (_isEditing && _existing == null)) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Measurements')),
+        appBar: AppBar(title: Text(S.current.measurements)),
         body: EmptyState(
           icon: Icons.straighten_outlined,
-          title: 'Measurements not found',
-          message: 'Something is missing. Please go back and try again.',
-          actionLabel: 'Go back',
-          onAction: () => context.pop(),
+          title: S.current.measurementsNotFound,
+          message: S.current.somethingMissing,
+          actionLabel: S.current.goBack,
+          onAction: _close,
         ),
       );
     }
@@ -224,7 +241,7 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _isEditing ? 'Edit ${garmentType.label}' : 'New ${garmentType.label}',
+          _isEditing ? S.current.editGarment(garmentType.label) : S.current.newGarment(garmentType.label),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -245,7 +262,7 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _CustomerHeader(
-                          name: customer?.name ?? 'Unknown customer',
+                          name: customer?.name ?? S.current.unknownCustomer,
                           initial: customer?.initial ?? '?',
                           garment: garmentType,
                         ),
@@ -257,7 +274,7 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
                               setState(() => _fillFrom(previous));
                               AppSnackbar.showSuccess(
                                 context,
-                                'Copied. Adjust anything that has changed.',
+                                S.current.copiedAdjust,
                               );
                             },
                           ),
@@ -267,24 +284,24 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
                           controller: _labelController,
                           textCapitalization: TextCapitalization.sentences,
                           inputFormatters: [LengthLimitingTextInputFormatter(60)],
-                          decoration: const InputDecoration(
-                            labelText: 'Label (optional)',
-                            hintText: 'e.g. Eid 2026',
+                          decoration: InputDecoration(
+                            labelText: S.current.labelOptional,
+                            hintText: S.current.labelExample,
                             prefixIcon: Icon(Icons.label_outline),
                           ),
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'Measurements (inches)',
+                          S.current.measurementsInches,
                           style: Theme.of(context)
                               .textTheme
                               .titleSmall
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          'Fill in what you need. Every field is optional.',
-                          style: TextStyle(color: AppColors.slate500),
+                        Text(
+                          S.current.fillWhatYouNeed,
+                          style: TextStyle(color: context.pal.slate500),
                         ),
                         const SizedBox(height: 12),
                         AdaptiveWrap(
@@ -308,6 +325,7 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
                                 validator: InchFormat.validateOptional,
                                 decoration: InputDecoration(
                                   labelText: field.label,
+                                  prefixIcon: Icon(field.icon, size: 20),
                                   helperText: field.hint,
                                   suffixText: 'in',
                                   errorMaxLines: 2,
@@ -343,9 +361,9 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
                           maxLines: 5,
                           textCapitalization: TextCapitalization.sentences,
                           inputFormatters: [LengthLimitingTextInputFormatter(1000)],
-                          decoration: const InputDecoration(
-                            labelText: 'Notes',
-                            hintText: 'e.g. Left shoulder slightly lower',
+                          decoration: InputDecoration(
+                            labelText: S.current.notes,
+                            hintText: S.current.notesExample,
                             alignLabelWithHint: true,
                             prefixIcon: Icon(Icons.notes_outlined),
                           ),
@@ -355,8 +373,8 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: _saving ? null : () => context.pop(),
-                                child: const Text('Cancel'),
+                                onPressed: _saving ? null : _close,
+                                child: Text(S.current.cancel),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -372,7 +390,7 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
                                     color: Colors.white,
                                   ),
                                 )
-                                    : const Text('Save'),
+                                    : Text(S.current.save),
                               ),
                             ),
                           ],
@@ -410,11 +428,11 @@ class _CustomerHeader extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: AppColors.primarySoft,
+              backgroundColor: context.pal.primarySoft,
               child: Text(
                 initial,
-                style: const TextStyle(
-                  color: AppColors.primary,
+                style: TextStyle(
+                  color: context.pal.primary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -432,12 +450,12 @@ class _CustomerHeader extends StatelessWidget {
                   ),
                   Text(
                     garment.label,
-                    style: const TextStyle(color: AppColors.slate500),
+                    style: TextStyle(color: context.pal.slate500),
                   ),
                 ],
               ),
             ),
-            Icon(garment.icon, color: AppColors.primary),
+            Icon(garment.icon, color: context.pal.primary),
           ],
         ),
       ),
@@ -455,26 +473,26 @@ class _CopyBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final updatedAt = previous.updatedAt;
     final date =
-    updatedAt == null ? 'just now' : DateFormat('d MMM y').format(updatedAt);
-    final name = previous.label.isEmpty ? 'the last set' : '"${previous.label}"';
+    updatedAt == null ? S.current.justNow : AppDates.medium(updatedAt);
+    final name = previous.label.isEmpty ? S.current.theLastSet : '"${previous.label}"';
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 4, 4),
       decoration: BoxDecoration(
-        color: AppColors.primarySoft,
+        color: context.pal.primarySoft,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          const Icon(Icons.history, color: AppColors.primary),
+          Icon(Icons.history, color: context.pal.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Copy from $name ($date)?',
-              style: const TextStyle(color: AppColors.slate700),
+              S.current.copyFromQ(name, date),
+              style: TextStyle(color: context.pal.slate700),
             ),
           ),
-          TextButton(onPressed: onCopy, child: const Text('Copy')),
+          TextButton(onPressed: onCopy, child: Text(S.current.copy)),
         ],
       ),
     );
@@ -498,7 +516,7 @@ class _StyleGroupSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          group.multiSelect ? '${group.label} (choose any)' : group.label,
+          group.multiSelect ? S.current.chooseAny(group.label) : group.label,
           style: Theme.of(context)
               .textTheme
               .titleSmall
@@ -529,8 +547,8 @@ class _FractionBar extends StatelessWidget {
 
   final ValueChanged<int> onFraction;
 
-  static const List<String> _labels = [
-    'Whole',
+  static List<String> get _labels => [
+    S.current.whole,
     '⅛',
     '¼',
     '⅜',
@@ -546,7 +564,7 @@ class _FractionBar extends StatelessWidget {
     // the text field", otherwise desktop would drop focus first.
     return TextFieldTapRegion(
       child: Material(
-        color: Colors.white,
+        color: context.pal.surface,
         elevation: 8,
         child: SizedBox(
           height: 56,
@@ -556,7 +574,7 @@ class _FractionBar extends StatelessWidget {
             children: [
               for (var eighths = 0; eighths < _labels.length; eighths++)
                 Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsetsDirectional.only(end: 8),
                   child: ActionChip(
                     label: Text(
                       _labels[eighths],

@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// Password input with a show/hide toggle.
 class PasswordField extends StatefulWidget {
@@ -43,7 +44,7 @@ class _PasswordFieldState extends State<PasswordField> {
         labelText: widget.label,
         prefixIcon: const Icon(Icons.lock_outline),
         suffixIcon: IconButton(
-          tooltip: _obscure ? 'Show password' : 'Hide password',
+          tooltip: _obscure ? S.current.showPassword : S.current.hidePassword,
           icon: Icon(
             _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
           ),

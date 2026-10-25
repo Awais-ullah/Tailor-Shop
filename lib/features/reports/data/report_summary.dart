@@ -1,4 +1,4 @@
-import 'package:intl/intl.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/features/orders/data/models/order.dart';
 import 'package:tailor_app/features/orders/data/order_status.dart';
@@ -19,15 +19,18 @@ class DateRange {
 }
 
 enum ReportPeriod {
-  today('Today'),
-  thisWeek('This week'),
-  thisMonth('This month'),
-  lastMonth('Last month'),
-  thisYear('This year');
+  today('range.today', 'Today'),
+  thisWeek('range.week', 'This week'),
+  thisMonth('range.month', 'This month'),
+  lastMonth('range.lastMonth', 'Last month'),
+  thisYear('range.year', 'This year');
 
-  const ReportPeriod(this.label);
+  const ReportPeriod(this._id, this._fallback);
 
-  final String label;
+  final String _id;
+  final String _fallback;
+
+  String get label => S.current.dyn(_id, _fallback);
 
   DateRange range(DateTime now) {
     final today = AppDates.dateOnly(now);
@@ -191,7 +194,7 @@ class ReportSummary {
       return [
         for (var month = 1; month <= last.month; month++)
           IncomeBucket(
-            DateFormat('MMM').format(DateTime(range.start.year, month)),
+            AppDates.monthShort(month),
             monthly[month] ?? 0,
           ),
       ];

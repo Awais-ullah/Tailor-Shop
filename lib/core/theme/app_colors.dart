@@ -1,26 +1,36 @@
 import 'package:flutter/material.dart';
 
-/// Professional Slate color system.
+/// Tailor Shop colors, taken from the app icon (teal, gold, cream).
 /// Screens never hard-code colors; they always read from here.
+///
+/// NOTE: the old "slate" names are kept so nothing else breaks. They are now
+/// teal-tinted neutrals (slate50 is the cream screen background).
 class AppColors {
   AppColors._();
 
-  // Brand
-  static const Color primary = Color(0xFF1D4ED8);
-  static const Color primarySoft = Color(0xFFEFF4FF);
+  // Brand: deep teal
+  static const Color primary = Color(0xFF0B4A57);
+  static const Color primaryDark = Color(0xFF07343E);
+  static const Color primaryLight = Color(0xFF0E5A69);
+  static const Color primarySoft = Color(0xFFE4F0F1);
 
-  // Slate neutrals
-  static const Color slate50 = Color(0xFFF8FAFC);
-  static const Color slate100 = Color(0xFFF1F5F9);
-  static const Color slate200 = Color(0xFFE2E8F0);
-  static const Color slate300 = Color(0xFFCBD5E1);
-  static const Color slate500 = Color(0xFF64748B);
-  static const Color slate700 = Color(0xFF334155);
-  static const Color slate900 = Color(0xFF0F172A);
+  // Brand: gold accent (use for icons / highlights, not small text)
+  static const Color gold = Color(0xFFD4A94F);
+  static const Color goldSoft = Color(0xFFFBF3E0);
+  static const Color goldDeep = Color(0xFF8A6A1F); // gold that is readable as text
+
+  // Neutrals
+  static const Color slate50 = Color(0xFFF8F4EA); // screen background (cream)
+  static const Color slate100 = Color(0xFFEEF1EE);
+  static const Color slate200 = Color(0xFFE3E8E4);
+  static const Color slate300 = Color(0xFFCBD5D1);
+  static const Color slate500 = Color(0xFF556B70);
+  static const Color slate700 = Color(0xFF2F4A50);
+  static const Color slate900 = Color(0xFF10262C);
 
   // Semantic
-  static const Color success = Color(0xFF16A34A);
-  static const Color warning = Color(0xFFD97706);
-  static const Color danger = Color(0xFFDC2626);
-  static const Color info = Color(0xFF0284C7);
+  static const Color success = Color(0xFF157A3B);
+  static const Color warning = Color(0xFF9A6700);
+  static const Color danger = Color(0xFFB42318);
+  static const Color info = Color(0xFF0A5A8C);
 }

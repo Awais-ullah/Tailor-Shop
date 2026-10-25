@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:tailor_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:tailor_app/features/auth/presentation/cubit/auth_state.dart';
-import 'package:tailor_app/features/shop/data/repositories/shop_repository.dart';
+import 'package:tailor_app/features/shop/data/repositories/shop_repository.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// Watches the login state and makes sure a logged-in owner has a shop
 /// document. Runs in the background; nothing waits for it.
@@ -30,7 +31,7 @@ class ShopBootstrapper {
     _lastUid = user.uid;
 
     final owner = user.displayName?.trim() ?? '';
-    final shopName = owner.isEmpty ? 'My Tailor Shop' : "$owner's Tailor Shop";
+    final shopName = owner.isEmpty ? S.current.myTailorShop : S.current.ownersTailorShop(owner);
 
     unawaited(
       _shopRepository.ensureShopExists(ownerUid: user.uid, shopName: shopName),

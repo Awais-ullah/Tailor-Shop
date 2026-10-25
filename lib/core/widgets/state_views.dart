@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// Centers its child when there is room, and scrolls when there isn't
 /// (small screens, large text, open keyboard).
@@ -63,11 +64,11 @@ class EmptyState extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(18),
-            decoration: const BoxDecoration(
-              color: AppColors.primarySoft,
+            decoration: BoxDecoration(
+              color: context.pal.primarySoft,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 36, color: AppColors.primary),
+            child: Icon(icon, size: 36, color: context.pal.primary),
           ),
           const SizedBox(height: 16),
           Text(
@@ -79,7 +80,7 @@ class EmptyState extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: textTheme.bodyMedium?.copyWith(color: AppColors.slate500),
+            style: textTheme.bodyMedium?.copyWith(color: context.pal.slate500),
           ),
           if (actionLabel != null && onAction != null) ...[
             const SizedBox(height: 20),
@@ -105,10 +106,10 @@ class ErrorState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline, size: 44, color: AppColors.danger),
+          Icon(Icons.error_outline, size: 44, color: context.pal.danger),
           const SizedBox(height: 16),
           Text(
-            'Something went wrong',
+            S.current.somethingWentWrong,
             textAlign: TextAlign.center,
             style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
@@ -116,13 +117,13 @@ class ErrorState extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: textTheme.bodyMedium?.copyWith(color: AppColors.slate500),
+            style: textTheme.bodyMedium?.copyWith(color: context.pal.slate500),
           ),
           const SizedBox(height: 20),
           OutlinedButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh),
-            label: const Text('Try again'),
+            label: Text(S.current.tryAgain),
           ),
         ],
       ),

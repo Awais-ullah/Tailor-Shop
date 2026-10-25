@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tailor_app/core/theme/app_colors.dart';
-import 'package:tailor_app/core/widgets/app_logo.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
+import 'package:tailor_app/core/widgets/app_logo.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// Shared layout for Login / Sign up / Forgot password.
 /// Wide screens: brand panel + form. Phones: a single scrollable form.
@@ -34,7 +36,7 @@ class AuthScaffold extends StatelessWidget {
             children: [
               if (!showBrandPanel) ...[
                 const Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   child: AppLogo(size: 48),
                 ),
                 const SizedBox(height: 24),
@@ -47,7 +49,7 @@ class AuthScaffold extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 subtitle,
-                style: textTheme.bodyMedium?.copyWith(color: AppColors.slate500),
+                style: textTheme.bodyMedium?.copyWith(color: context.pal.slate500),
               ),
               const SizedBox(height: 28),
               child,
@@ -58,7 +60,7 @@ class AuthScaffold extends StatelessWidget {
     );
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.pal.background,
       body: showBrandPanel
           ? Row(
         children: [
@@ -101,7 +103,17 @@ class _BrandPanel extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      color: AppColors.primary,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primaryLight,
+            AppColors.primary,
+            AppColors.primaryDark,
+          ],
+        ),
+      ),
       child: _ScrollCenter(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 440),
@@ -114,7 +126,7 @@ class _BrandPanel extends StatelessWidget {
                 const AppLogo(size: 56, inverted: true),
                 const SizedBox(height: 24),
                 Text(
-                  'Tailor Shop',
+                  S.current.appName,
                   style: textTheme.headlineMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -122,23 +134,23 @@ class _BrandPanel extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Customers, measurements, orders and payments in one place.',
+                  S.current.brandBlurb,
                   style: textTheme.bodyLarge?.copyWith(color: Colors.white70),
                 ),
                 const SizedBox(height: 32),
-                const _Feature(
+                _Feature(
                   icon: Icons.cloud_off_outlined,
-                  text: 'Keeps working without internet',
+                  text: S.current.featureOffline,
                 ),
                 const SizedBox(height: 16),
-                const _Feature(
+                _Feature(
                   icon: Icons.straighten_outlined,
-                  text: 'Saved measurements for every customer',
+                  text: S.current.featureMeasurements,
                 ),
                 const SizedBox(height: 16),
-                const _Feature(
+                _Feature(
                   icon: Icons.account_balance_wallet_outlined,
-                  text: 'Clear balances and payment history',
+                  text: S.current.featureBalances,
                 ),
               ],
             ),
@@ -159,7 +171,7 @@ class _Feature extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: Colors.white, size: 22),
+        Icon(icon, color: AppColors.gold, size: 22),
         const SizedBox(width: 12),
         Expanded(
           child: Text(text, style: const TextStyle(color: Colors.white)),

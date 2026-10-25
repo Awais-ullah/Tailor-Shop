@@ -4,7 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tailor_app/core/errors/app_failure.dart';
 import 'package:tailor_app/features/auth/data/models/app_user.dart';
 import 'package:tailor_app/features/auth/data/repositories/auth_repository.dart';
-import 'package:tailor_app/features/auth/presentation/cubit/auth_state.dart';
+import 'package:tailor_app/features/auth/presentation/cubit/auth_state.dart';
+import 'package:tailor_app/core/l10n/app_strings.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   AuthCubit(this._repository) : super(const AuthState()) {
@@ -49,7 +50,7 @@ class AuthCubit extends Cubit<AuthState> {
     return _run(
           () => _repository.sendPasswordReset(email),
       successMessage:
-      'If an account exists for that email, a reset link has been sent.',
+      S.current.authResetSent,
     );
   }
 

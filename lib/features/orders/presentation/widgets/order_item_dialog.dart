@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/money.dart';
 import 'package:tailor_app/core/utils/validators.dart';
 import 'package:tailor_app/features/orders/data/models/order_item.dart';
 import 'package:tailor_app/features/orders/data/order_money.dart';
 
-const List<String> _suggestions = [
-  'Shalwar Kameez',
-  'Kurta',
-  'Shalwar',
-  'Waistcoat',
-  'Shirt',
-  'Pant',
-  'Coat',
-  'Sherwani',
+import 'package:tailor_app/core/l10n/app_strings.dart';
+
+List<String> get _suggestions => [
+  S.current.itemShalwarKameez,
+  S.current.itemKurta,
+  S.current.itemShalwar,
+  S.current.itemWaistcoat,
+  S.current.itemShirt,
+  S.current.itemPant,
+  S.current.itemCoat,
+  S.current.itemSherwani,
 ];
 
 /// Add a new item, or edit one when [initial] is given.
@@ -63,8 +65,8 @@ class _OrderItemDialogState extends State<_OrderItemDialog> {
 
   String? _validatePrice(String? value) {
     final price = int.tryParse(value?.trim() ?? '');
-    if (price == null) return 'Enter the price';
-    if (price <= 0) return 'Price must be greater than 0';
+    if (price == null) return S.current.enterPrice;
+    if (price <= 0) return S.current.priceOver0;
     return null;
   }
 
@@ -88,7 +90,7 @@ class _OrderItemDialogState extends State<_OrderItemDialog> {
     OrderMoney.lineTotal(OrderItem(name: '', quantity: _quantity, unitPrice: price));
 
     return AlertDialog(
-      title: Text(widget.initial == null ? 'Add item' : 'Edit item'),
+      title: Text(widget.initial == null ? S.current.addItem : S.current.editItem),
       scrollable: true,
       content: SizedBox(
         width: 400,
@@ -103,10 +105,10 @@ class _OrderItemDialogState extends State<_OrderItemDialog> {
                 textCapitalization: TextCapitalization.words,
                 inputFormatters: [LengthLimitingTextInputFormatter(60)],
                 validator: (value) =>
-                    Validators.requiredField(value, fieldName: 'Item name'),
-                decoration: const InputDecoration(
-                  labelText: 'Item',
-                  hintText: 'e.g. Shalwar Kameez',
+                    Validators.requiredField(value, fieldName: S.current.itemName),
+                decoration: InputDecoration(
+                  labelText: S.current.item,
+                  hintText: S.current.itemExample,
                 ),
               ),
               const SizedBox(height: 8),
@@ -125,14 +127,14 @@ class _OrderItemDialogState extends State<_OrderItemDialog> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Quantity',
+                      S.current.quantity,
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
                   IconButton.outlined(
-                    tooltip: 'Decrease quantity',
+                    tooltip: S.current.decreaseQuantity,
                     onPressed:
                     _quantity > 1 ? () => setState(() => _quantity--) : null,
                     icon: const Icon(Icons.remove),
@@ -149,7 +151,7 @@ class _OrderItemDialogState extends State<_OrderItemDialog> {
                     ),
                   ),
                   IconButton.outlined(
-                    tooltip: 'Increase quantity',
+                    tooltip: S.current.increaseQuantity,
                     onPressed:
                     _quantity < 99 ? () => setState(() => _quantity++) : null,
                     icon: const Icon(Icons.add),
@@ -166,18 +168,18 @@ class _OrderItemDialogState extends State<_OrderItemDialog> {
                 ],
                 validator: _validatePrice,
                 onChanged: (_) => setState(() {}),
-                decoration: const InputDecoration(
-                  labelText: 'Price per item',
-                  prefixText: 'Rs. ',
+                decoration: InputDecoration(
+                  labelText: S.current.pricePerItem,
+                  prefixText:Money.prefix,
                 ),
               ),
               const SizedBox(height: 12),
               Text(
-                'Line total: ${Money.pkr(lineTotal)}',
+                S.current.lineTotal(Money.pkr(lineTotal)),
                 textAlign: TextAlign.end,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: AppColors.slate700,
+                  color: context.pal.slate700,
                 ),
               ),
             ],
@@ -187,11 +189,11 @@ class _OrderItemDialogState extends State<_OrderItemDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(S.current.cancel),
         ),
         FilledButton(
           onPressed: _submit,
-          child: Text(widget.initial == null ? 'Add' : 'Save'),
+          child: Text(widget.initial == null ? S.current.add : S.current.save),
         ),
       ],
     );
