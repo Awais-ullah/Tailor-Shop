@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:tailor_app/core/theme/app_colors.dart';
 import 'package:tailor_app/core/theme/app_palette.dart';
@@ -14,9 +16,13 @@ class BottomBarItem {
   final IconData selectedIcon;
 }
 
-/// The phone's bottom navigation: a floating, rounded bar.
-/// The selected tab sits in a teal pill with a gold icon.
-/// Every label stays on ONE line (FittedBox shrinks instead of wrapping).
+/// The phone's bottom navigation: an edge-to-edge bar with rounded top
+/// corners and a smooth notch for the centre "+" button
+/// (the Scaffold's centre-docked floating action button).
+///
+/// The tabs are split evenly either side of the notch. The selected tab is
+/// teal with a small gold pill above its icon. Every label stays on ONE
+/// line (FittedBox shrinks instead of wrapping).
 class AppBottomBar extends StatelessWidget {
   const AppBottomBar({
     super.key,
@@ -29,43 +35,99 @@ class AppBottomBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelected;
 
+  /// Room left in the middle of the row for the "+" button.
+  static const double _notchGap = 76;
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 6, 16, 14),
-          child: Material(
-            color: context.pal.surface,
-            elevation: 8,
-            shadowColor: const Color(0x5907343E),
-            surfaceTintColor: Colors.transparent,
-            borderRadius: BorderRadius.circular(28),
-            clipBehavior: Clip.antiAlias,
-            child: SizedBox(
-              height: 72,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  children: [
-                    for (var i = 0; i < items.length; i++)
-                      Expanded(
-                        child: _BottomBarButton(
-                          item: items[i],
-                          selected: i == selectedIndex,
-                          onTap: () => onSelected(i),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+    final half = items.length ~/ 2;
+
+    Widget tab(int i) => Expanded(
+      child: _BottomBarButton(
+        item: items[i],
+        selected: i == selectedIndex,
+        onTap: () => onSelected(i),
       ),
     );
+
+    return BottomAppBar(
+      shape: const SmoothNotchedShape(),
+      notchMargin: 8,
+      height: 68,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      elevation: 12,
+      color: context.pal.surface,
+      shadowColor: const Color(0x5907343E),
+      surfaceTintColor: Colors.transparent,
+      clipBehavior: Clip.antiAlias,
+      child: Row(
+        children: [
+          for (var i = 0; i < half; i++) tab(i),
+          const SizedBox(width: _notchGap),
+          for (var i = half; i < items.length; i++) tab(i),
+        ],
+      ),
+    );
+  }
+}
+
+/// A rectangle with rounded top corners and a round notch for the
+/// floating button, with the notch's shoulders rounded off so the edge
+/// flows into it instead of meeting it at a sharp corner.
+class SmoothNotchedShape extends NotchedShape {
+  const SmoothNotchedShape({this.cornerRadius = 24, this.shoulderRadius = 10});
+
+  final double cornerRadius;
+  final double shoulderRadius;
+
+  @override
+  Path getOuterPath(Rect host, Rect? guest) {
+    final top = host.top;
+    final path = Path()
+      ..moveTo(host.left, host.bottom)
+      ..lineTo(host.left, top + cornerRadius)
+      ..arcToPoint(
+        Offset(host.left + cornerRadius, top),
+        radius: Radius.circular(cornerRadius),
+      );
+
+    if (guest != null && host.overlaps(guest)) {
+      // guest is the button grown by the notch margin.
+      final r = guest.width / 2;
+      final f = shoulderRadius;
+      final cx = guest.center.dx;
+      final cy = guest.center.dy;
+
+      // Each shoulder is a small circle sitting inside the bar, touching
+      // the top edge and the notch circle: its centre is (cx ± dx, top + f)
+      // and it lies r + f away from the notch centre.
+      final dy = top + f - cy;
+      final dx = math.sqrt(math.max(0, (r + f) * (r + f) - dy * dy));
+      // Where each shoulder meets the notch circle.
+      final t = r / (r + f);
+      final leftTouch = Offset(cx - dx * t, cy + dy * t);
+      final rightTouch = Offset(cx + dx * t, cy + dy * t);
+
+      path
+        ..lineTo(cx - dx, top)
+        ..arcToPoint(leftTouch, radius: Radius.circular(f))
+        ..arcToPoint(
+          rightTouch,
+          radius: Radius.circular(r),
+          clockwise: false,
+          largeArc: dy < 0,
+        )
+        ..arcToPoint(Offset(cx + dx, top), radius: Radius.circular(f));
+    }
+
+    return path
+      ..lineTo(host.right - cornerRadius, top)
+      ..arcToPoint(
+        Offset(host.right, top + cornerRadius),
+        radius: Radius.circular(cornerRadius),
+      )
+      ..lineTo(host.right, host.bottom)
+      ..close();
   }
 }
 
@@ -82,59 +144,60 @@ class _BottomBarButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconColor = selected ? AppColors.gold : context.pal.slate500;
-    final labelColor = selected ? Colors.white : context.pal.slate500;
+    final color = selected ? context.pal.primary : context.pal.slate500;
 
     return Semantics(
       button: true,
       selected: selected,
       label: item.label,
       child: ExcludeSemantics(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(20),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOut,
-              decoration: BoxDecoration(
-                color: selected ? context.pal.brand : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedOpacity(
+                opacity: selected ? 1 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: Container(
+                  width: 20,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: AppColors.gold,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedScale(
-                    scale: selected ? 1.15 : 1.0,
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutBack,
-                    child: Icon(
-                      selected ? item.selectedIcon : item.icon,
-                      size: 22,
-                      color: iconColor,
+              const SizedBox(height: 6),
+              AnimatedScale(
+                scale: selected ? 1.1 : 1.0,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutBack,
+                child: Icon(
+                  selected ? item.selectedIcon : item.icon,
+                  size: 24,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    item.label,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      color: color,
                     ),
                   ),
-                  const SizedBox(height: 3),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        item.label,
-                        maxLines: 1,
-                        softWrap: false,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: labelColor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),

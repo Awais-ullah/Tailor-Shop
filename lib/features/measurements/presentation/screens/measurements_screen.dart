@@ -21,7 +21,7 @@ import 'package:tailor_app/features/measurements/presentation/icons/tailor_glyph
 import 'package:tailor_app/features/measurements/presentation/icons/tailor_icon.dart';
 
 /// Pick a customer, pick a garment, then open the form.
-Future<void> _startNewMeasurement(BuildContext context) async {
+Future<void> startNewMeasurement(BuildContext context) async {
   final customers = context
       .read<CustomersCubit>()
       .state
@@ -71,7 +71,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: context.pal.brand,
         foregroundColor: AppColors.gold,
-        onPressed: () => _startNewMeasurement(context),
+        onPressed: () => startNewMeasurement(context),
         icon: const Icon(Icons.add),
         label: Text(S.current.newMeasurements),
       ),
@@ -202,7 +202,7 @@ class _Content extends StatelessWidget {
         title: S.current.noMeasurementsYet,
         message: S.current.savedMeasurementsAppear,
         actionLabel: S.current.newMeasurements,
-        onAction: () => _startNewMeasurement(context),
+        onAction: () => startNewMeasurement(context),
       );
     }
 

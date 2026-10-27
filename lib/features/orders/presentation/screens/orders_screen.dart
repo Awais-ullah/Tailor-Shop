@@ -17,7 +17,7 @@ import 'package:tailor_app/core/l10n/app_strings.dart';
 import '../../../../core/widgets/fade_slide_in.dart';
 
 /// Pick a customer, then open the new-order form.
-Future<void> _startNewOrder(BuildContext context) async {
+Future<void> startNewOrder(BuildContext context) async {
   final customers = context
       .read<CustomersCubit>()
       .state
@@ -61,7 +61,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: context.pal.brand,
         foregroundColor: AppColors.gold,
-        onPressed: () => _startNewOrder(context),
+        onPressed: () => startNewOrder(context),
         icon: const Icon(Icons.add),
         label: Text(S.current.newOrder),
       ),
@@ -184,7 +184,7 @@ class _Content extends StatelessWidget {
           title: S.current.noOrdersYet,
           message: S.current.createFirstOrder,
           actionLabel: S.current.newOrder,
-          onAction: () => _startNewOrder(context),
+          onAction: () => startNewOrder(context),
         );
       }
       return EmptyState(
