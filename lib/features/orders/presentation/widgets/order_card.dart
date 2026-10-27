@@ -5,7 +5,7 @@ import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/utils/money.dart';
 import 'package:tailor_app/features/orders/data/models/order.dart';
 import 'package:tailor_app/features/orders/data/order_status.dart';
-import 'package:tailor_app/features/orders/presentation/widgets/status_chips.dart';
+import 'package:tailor_app/features/orders/presentation/widgets/status_chips.dart';
 import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// One order in a list. Pass [customerName] on the global list; leave it
@@ -73,19 +73,18 @@ class OrderCard extends StatelessWidget {
                     alignment: Alignment.center,
                     child: name == null || name.isEmpty
                         ? Icon(
-                      Icons.receipt_long_outlined,
-                      size: 22,
-                      color: context.pal.primary,
-                    )
+                            Icons.receipt_long_outlined,
+                            size: 22,
+                            color: context.pal.primary,
+                          )
                         : Text(
-                      String.fromCharCode(name.runes.first)
-                          .toUpperCase(),
-                      style: TextStyle(
-                        color: context.pal.primary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 18,
-                      ),
-                    ),
+                            String.fromCharCode(name.runes.first).toUpperCase(),
+                            style: TextStyle(
+                              color: context.pal.primary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 18,
+                            ),
+                          ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -123,10 +122,7 @@ class OrderCard extends StatelessWidget {
                 order.itemsSummary,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: context.pal.slate700,
-                ),
+                style: TextStyle(fontSize: 13, color: context.pal.slate700),
               ),
               if (stage > 0) ...[
                 const SizedBox(height: 12),
@@ -160,15 +156,20 @@ class OrderCard extends StatelessWidget {
                         Flexible(
                           child: Text(
                             overdue
-                                ? S.current.dueDateOverdue(AppDates.short(order.deliveryDate))
-                                : S.current.dueDate(AppDates.short(order.deliveryDate)),
+                                ? S.current.dueDateOverdue(
+                                    AppDates.short(order.deliveryDate),
+                                  )
+                                : S.current.dueDate(
+                                    AppDates.short(order.deliveryDate),
+                                  ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 12,
                               color: dueColor,
-                              fontWeight:
-                              overdue ? FontWeight.w700 : FontWeight.w500,
+                              fontWeight: overdue
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
                             ),
                           ),
                         ),

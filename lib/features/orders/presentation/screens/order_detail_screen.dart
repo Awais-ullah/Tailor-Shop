@@ -5,14 +5,11 @@ import 'package:tailor_app/core/errors/app_failure.dart';
 import 'package:tailor_app/core/theme/app_colors.dart';
 import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/app_dates.dart';
-import 'package:tailor_app/core/utils/inch_format.dart';
 import 'package:tailor_app/core/utils/money.dart';
 import 'package:tailor_app/core/widgets/app_snackbar.dart';
 import 'package:tailor_app/core/widgets/state_views.dart';
 import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit.dart';
-import 'package:tailor_app/features/measurements/data/measurement_templates.dart';
 import 'package:tailor_app/features/orders/data/models/order.dart';
-import 'package:tailor_app/features/orders/data/models/order_measurement.dart';
 import 'package:tailor_app/features/orders/data/order_money.dart';
 import 'package:tailor_app/features/orders/data/order_status.dart';
 import 'package:tailor_app/features/orders/presentation/order_status_ui.dart';
@@ -22,8 +19,6 @@ import 'package:tailor_app/features/orders/presentation/widgets/status_chips.dar
 import '../../../payments/presentation/widgets/order_payments_section.dart';
 
 import 'package:tailor_app/core/l10n/app_strings.dart';
-import 'package:tailor_app/features/measurements/presentation/icons/tailor_glyphs.dart';
-import 'package:tailor_app/features/measurements/presentation/icons/tailor_icon.dart';
 import 'package:tailor_app/features/orders/presentation/widgets/order_summary_rows.dart';
 import 'package:tailor_app/features/orders/presentation/widgets/status_steps.dart';
 import 'package:tailor_app/features/orders/presentation/widgets/measurement_snapshot_block.dart';
@@ -41,11 +36,11 @@ class OrderDetailScreen extends StatelessWidget {
   final String editLocation;
 
   Future<void> _applyStatus(
-      BuildContext context,
-      OrdersCubit cubit,
-      Order order,
-      OrderStatus status,
-      ) async {
+    BuildContext context,
+    OrdersCubit cubit,
+    Order order,
+    OrderStatus status,
+  ) async {
     try {
       // Handing over work that has not been paid for deserves a pause.
       if (status == OrderStatus.delivered && order.remainingAmount > 0) {
@@ -72,7 +67,10 @@ class OrderDetailScreen extends StatelessWidget {
       }
       await cubit.updateStatus(order.id, status);
       if (context.mounted) {
-        AppSnackbar.showSuccess(context, S.current.markedAs(status.label.toLowerCase()));
+        AppSnackbar.showSuccess(
+          context,
+          S.current.markedAs(status.label.toLowerCase()),
+        );
       }
     } on AppFailure catch (failure) {
       if (context.mounted) AppSnackbar.showError(context, failure.message);
@@ -98,16 +96,17 @@ class OrderDetailScreen extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.only(bottom: 8),
                 child: Text(
                   S.current.changeStatus,
-                  style: Theme.of(sheetContext)
-                      .textTheme
-                      .titleMedium
+                  style: Theme.of(sheetContext).textTheme.titleMedium
                       ?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
               for (final status in OrderStatus.values)
                 ListTile(
                   minTileHeight: 56,
-                  leading: Icon(status.icon, color: context.pal.adapt(status.color)),
+                  leading: Icon(
+                    status.icon,
+                    color: context.pal.adapt(status.color),
+                  ),
                   title: Text(status.label),
                   trailing: status == order.status
                       ? Icon(Icons.check, color: context.pal.primary)
@@ -126,9 +125,7 @@ class OrderDetailScreen extends StatelessWidget {
         context: context,
         builder: (dialogContext) => AlertDialog(
           title: Text(S.current.cancelOrderQ),
-          content: Text(
-            S.current.cancelOrderBody,
-          ),
+          content: Text(S.current.cancelOrderBody),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
@@ -165,8 +162,9 @@ class OrderDetailScreen extends StatelessWidget {
       );
     }
 
-    final customer =
-    context.watch<CustomersCubit>().state.customerById(order.customerId);
+    final customer = context.watch<CustomersCubit>().state.customerById(
+      order.customerId,
+    );
     final textTheme = Theme.of(context).textTheme;
     final nextStatus = order.status.next;
 
@@ -202,8 +200,9 @@ class OrderDetailScreen extends StatelessWidget {
                               customer?.name ?? S.current.unknownCustomer,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -242,8 +241,9 @@ class OrderDetailScreen extends StatelessWidget {
                     children: [
                       Text(
                         S.current.progress,
-                        style: textTheme.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       if (order.status == OrderStatus.cancelled)
@@ -266,7 +266,11 @@ class OrderDetailScreen extends StatelessWidget {
                             nextStatus,
                           ),
                           icon: Icon(nextStatus.icon),
-                          label: Text(S.current.markAsNext(nextStatus.label.toLowerCase())),
+                          label: Text(
+                            S.current.markAsNext(
+                              nextStatus.label.toLowerCase(),
+                            ),
+                          ),
                         ),
                       if (nextStatus != null) const SizedBox(height: 8),
                       OutlinedButton(
@@ -288,8 +292,9 @@ class OrderDetailScreen extends StatelessWidget {
                     children: [
                       Text(
                         S.current.items,
-                        style: textTheme.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       for (final item in order.items)
@@ -345,16 +350,23 @@ class OrderDetailScreen extends StatelessWidget {
                           Expanded(
                             child: Text(
                               S.current.payment,
-                              style: textTheme.titleSmall
-                                  ?.copyWith(fontWeight: FontWeight.w700),
+                              style: textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                           PaymentStatusChip(status: order.paymentStatus),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      OrderMoneyRow(label: S.current.orderTotal, amount: order.totalAmount),
-                      OrderMoneyRow(label: S.current.paid, amount: order.totalPaid),
+                      OrderMoneyRow(
+                        label: S.current.orderTotal,
+                        amount: order.totalAmount,
+                      ),
+                      OrderMoneyRow(
+                        label: S.current.paid,
+                        amount: order.totalPaid,
+                      ),
                       const Divider(height: 24),
                       OrderMoneyRow(
                         label: S.current.remaining,
@@ -382,14 +394,19 @@ class OrderDetailScreen extends StatelessWidget {
                       children: [
                         Text(
                           S.current.measurementsInches,
-                          style: textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         for (final measurement in order.measurements)
                           Padding(
-                            padding: const EdgeInsetsDirectional.only(bottom: 12),
-                            child: MeasurementSnapshotBlock(measurement: measurement),
+                            padding: const EdgeInsetsDirectional.only(
+                              bottom: 12,
+                            ),
+                            child: MeasurementSnapshotBlock(
+                              measurement: measurement,
+                            ),
                           ),
                       ],
                     ),
@@ -407,8 +424,9 @@ class OrderDetailScreen extends StatelessWidget {
                       children: [
                         Text(
                           S.current.notes,
-                          style: textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(order.notes),

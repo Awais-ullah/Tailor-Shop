@@ -15,8 +15,9 @@ const String _allowlistPath = 'test/l10n_missing_allowlist.txt';
 
 final RegExp _placeholder = RegExp(r'\{(\w+)\}');
 
-Set<String> _placeholders(String text) =>
-    {for (final m in _placeholder.allMatches(text)) m.group(1)!};
+Set<String> _placeholders(String text) => {
+  for (final m in _placeholder.allMatches(text)) m.group(1)!,
+};
 
 /// 'orderCountLabel#one' -> 'orderCountLabel'.
 String _base(String key) => key.split('#').first;
@@ -33,8 +34,11 @@ void main() {
 
   test('every supported language has a table', () {
     for (final language in AppLanguage.all) {
-      expect(tables.containsKey(language.code), isTrue,
-          reason: 'No strings for ${language.code}');
+      expect(
+        tables.containsKey(language.code),
+        isTrue,
+        reason: 'No strings for ${language.code}',
+      );
     }
   });
 
@@ -48,9 +52,13 @@ void main() {
         if (!known) problems.add('$code: $key');
       }
     });
-    expect(problems, isEmpty,
-        reason: 'Unknown keys (typo, or missing from English):\n'
-            '${problems.join('\n')}');
+    expect(
+      problems,
+      isEmpty,
+      reason:
+          'Unknown keys (typo, or missing from English):\n'
+          '${problems.join('\n')}',
+    );
   });
 
   test('placeholders match English', () {
@@ -104,21 +112,29 @@ void main() {
 
     final allowed = file.existsSync()
         ? file
-            .readAsLinesSync()
-            .map((line) => line.trim())
-            .where((line) => line.isNotEmpty)
-            .toSet()
+              .readAsLinesSync()
+              .map((line) => line.trim())
+              .where((line) => line.isNotEmpty)
+              .toSet()
         : <String>{};
 
     final newGaps = missing.where((k) => !allowed.contains(k)).toList();
-    final nowTranslated =
-        allowed.where((k) => !missing.contains(k)).toList()..sort();
+    final nowTranslated = allowed.where((k) => !missing.contains(k)).toList()
+      ..sort();
 
-    expect(newGaps, isEmpty,
-        reason: 'These strings have no translation. Add them to every '
-            'language table:\n${newGaps.join('\n')}');
-    expect(nowTranslated, isEmpty,
-        reason: 'These are translated now; remove them from '
-            '$_allowlistPath:\n${nowTranslated.join('\n')}');
+    expect(
+      newGaps,
+      isEmpty,
+      reason:
+          'These strings have no translation. Add them to every '
+          'language table:\n${newGaps.join('\n')}',
+    );
+    expect(
+      nowTranslated,
+      isEmpty,
+      reason:
+          'These are translated now; remove them from '
+          '$_allowlistPath:\n${nowTranslated.join('\n')}',
+    );
   });
 }

@@ -93,7 +93,8 @@ class GlyphPaths {
 
   static final RegExp _token = RegExp(r'[MLQCZ]|-?\d*\.?\d+');
 
-  static Path parse(String data) => _cache.putIfAbsent(data, () => _parse(data));
+  static Path parse(String data) =>
+      _cache.putIfAbsent(data, () => _parse(data));
 
   static Path _parse(String data) {
     final tokens = _token.allMatches(data).map((m) => m.group(0)!).toList();

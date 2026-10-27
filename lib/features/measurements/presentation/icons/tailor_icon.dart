@@ -38,7 +38,8 @@ class TailorIcon extends StatelessWidget {
       child: CustomPaint(
         painter: _TailorIconPainter(
           glyph: glyph,
-          color: color ?? context.pal.slate500,
+          // Faded, so the measured part in the accent colour stands out.
+          color: color ?? context.pal.slate500.withValues(alpha: 0.6),
           accentColor: accentColor ?? context.pal.primary,
         ),
       ),
@@ -61,9 +62,10 @@ class _TailorIconPainter extends CustomPainter {
   final Color accentColor;
 
   static const double _grid = 24;
-  static const double _outlineWidth = 1.4;
-  static const double _accentWidth = 2.0;
-  static const double _arrowLength = 1.6;
+  static const double _outlineWidth = 1.2;
+  static const double _accentWidth = 2.2;
+  static const double _arrowLength = 2.0;
+  static const double _ringWidth = 1.6;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -77,7 +79,7 @@ class _TailorIconPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     final cloth = Paint()
-      ..color = color.withValues(alpha: 0.12)
+      ..color = color.withValues(alpha: 0.10)
       ..style = PaintingStyle.fill;
     final accent = Paint()
       ..color = accentColor
@@ -113,7 +115,11 @@ class _TailorIconPainter extends CustomPainter {
               width: radiusX * 2,
               height: radiusY * 2,
             ),
-            accent,
+            // Thinner than other marks, so small loops stay open.
+            Paint()
+              ..color = accentColor
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = _ringWidth,
           );
         case Accent(:final path, :final fill):
           final shape = GlyphPaths.parse(path);
@@ -137,7 +143,7 @@ class _TailorIconPainter extends CustomPainter {
     final direction = away - tip;
     if (direction.distance == 0) return;
     final angle = direction.direction;
-    const spread = 0.55; // about 32 degrees either side
+    const spread = 0.6; // about 34 degrees either side
     for (final side in const [-1, 1]) {
       final a = angle + side * spread;
       canvas.drawLine(

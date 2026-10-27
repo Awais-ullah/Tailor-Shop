@@ -194,10 +194,12 @@ None of the Dart tests needs Firebase.
 | `money_and_inches_test.dart` | `OrderMoney`, `Money` in several currencies, `InchFormat` |
 | `ledger_calculator_test.dart`, `dashboard_summary_test.dart`, `report_summary_test.dart` | Balances, dashboard counts and windows, report periods and buckets |
 | `phone_utils_test.dart` | Phone normalisation and validation |
+| `order_form_parts_test.dart` | Order form sections: items and total, edit index, empty states, buttons disabled while saving |
 | `translations_test.dart` | String tables match English (keys, placeholders, plurals, allowlisted gaps) |
 | `architecture_test.dart` | No UI or theme imports under `features/*/data/` |
 | `icons/tailor_glyphs_test.dart` | Every garment, field and style option has its own icon, and every path parses |
 | `icons/tailor_icons_golden_test.dart` | Pictures of every icon (tag `golden`) |
+| `icons/measurement_form_icons_test.dart` | Style chips and form header show their icons without overflowing, at 1× and 1.5× text |
 
 Shared builders for orders, payments and customers live in `test/support/builders.dart`.
 

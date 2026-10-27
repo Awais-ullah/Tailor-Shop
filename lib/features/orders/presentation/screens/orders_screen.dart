@@ -84,13 +84,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       builder: (context, value, _) => value.text.isEmpty
                           ? const SizedBox.shrink()
                           : IconButton(
-                        tooltip: S.current.clearSearch,
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          _searchController.clear();
-                          cubit.setQuery('');
-                        },
-                      ),
+                              tooltip: S.current.clearSearch,
+                              icon: const Icon(Icons.close),
+                              onPressed: () {
+                                _searchController.clear();
+                                cubit.setQuery('');
+                              },
+                            ),
                     ),
                   ),
                 ),
@@ -163,7 +163,8 @@ class _Content extends StatelessWidget {
 
     // Build the lookup once instead of searching per item.
     final names = {
-      for (final customer in customersState.customers) customer.id: customer.name,
+      for (final customer in customersState.customers)
+        customer.id: customer.name,
     };
     String nameOf(String id) => names[id] ?? S.current.unknownCustomer;
 

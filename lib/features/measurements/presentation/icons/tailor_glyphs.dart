@@ -28,8 +28,11 @@ class TailorGlyphs {
   static TailorGlyph field(GarmentType type, String fieldKey) =>
       _fields[type]?[fieldKey] ?? fallback;
 
-  static TailorGlyph style(GarmentType type, String groupKey, String optionId) =>
-      _styles[type]?['$groupKey.$optionId'] ?? fallback;
+  static TailorGlyph style(
+    GarmentType type,
+    String groupKey,
+    String optionId,
+  ) => _styles[type]?['$groupKey.$optionId'] ?? fallback;
 
   /// A tape measure: used whenever nothing more specific exists.
   static const TailorGlyph fallback = TailorGlyph(
@@ -124,7 +127,8 @@ class TailorGlyphs {
       'shoulder': TailorGlyph(
         name: 'kurta.shoulder',
         body: [_kurta],
-        marks: [Span(Offset(6.6, 4.8), Offset(17.4, 4.8))],
+        // A bracket from shoulder point to shoulder point, above the garment.
+        marks: [Accent('M6.5 3.6 L6.5 1.4 L17.5 1.4 L17.5 3.6')],
       ),
       'chest': TailorGlyph(
         name: 'kurta.chest',
@@ -144,27 +148,33 @@ class TailorGlyphs {
       'daman': TailorGlyph(
         name: 'kurta.daman',
         body: [_kurta],
-        marks: [Accent('M6.9 21 L17.1 21'), Tape(Offset(7, 19.4), Offset(17, 19.4), bulge: 0.6)],
+        marks: [
+          Accent('M6.9 21 L17.1 21'),
+          Tape(Offset(7, 19.4), Offset(17, 19.4), bulge: 0.6),
+        ],
       ),
       'sleeve': TailorGlyph(
         name: 'kurta.sleeve',
         body: [_kurta],
-        marks: [Span(Offset(6.5, 5.2), Offset(3.8, 12.4))],
+        // Just outside the sleeve, parallel to it, so it doesn't hide the seam.
+        marks: [Span(Offset(5.3, 3.7), Offset(1.4, 12.2))],
       ),
       'armhole': TailorGlyph(
         name: 'kurta.armhole',
         body: [_kurta],
-        marks: [Ring(Offset(7.0, 6.4), 1.1, 2.3)],
+        marks: [Ring(Offset(6.9, 6.3), 1.6, 2.6)],
       ),
       'collar': TailorGlyph(
         name: 'kurta.collar',
         body: [_kurta],
-        marks: [Ring(Offset(12, 3.5), 2.6, 1.2)],
+        marks: [Ring(Offset(12, 3.6), 3.0, 1.5)],
       ),
       'cuff': TailorGlyph(
         name: 'kurta.cuff',
         body: [_kurta],
-        marks: [Accent('M2.95 12 L5.05 12.9 L4.6 13.7 L2.6 12.8 Z', fill: true)],
+        marks: [
+          Accent('M2.95 12 L5.05 12.9 L4.6 13.7 L2.6 12.8 Z', fill: true),
+        ],
       ),
     },
     GarmentType.shalwarTrouser: {
@@ -215,7 +225,7 @@ class TailorGlyphs {
         name: 'waistcoat.shoulder',
         body: [_waistcoat],
         lines: [_waistcoatFront],
-        marks: [Span(Offset(7.0, 4.4), Offset(17.0, 4.4))],
+        marks: [Accent('M7 3.4 L7 1.4 L17 1.4 L17 3.4')],
       ),
       'chest': TailorGlyph(
         name: 'waistcoat.chest',
@@ -233,7 +243,7 @@ class TailorGlyphs {
         name: 'waistcoat.armhole',
         body: [_waistcoat],
         lines: [_waistcoatFront],
-        marks: [Ring(Offset(7.4, 7.0), 1.2, 2.8)],
+        marks: [Ring(Offset(7.5, 7.0), 1.7, 3.0)],
       ),
     },
   };
@@ -247,7 +257,9 @@ class TailorGlyphs {
         body: [_neckline],
         lines: [_placket],
         marks: [
-          Accent('M8.5 9.4 L8.5 6.2 Q12 5 15.5 6.2 L15.5 9.4 Q12 10.6 8.5 9.4 Z'),
+          Accent(
+            'M8.5 9.4 L8.5 6.2 Q12 5 15.5 6.2 L15.5 9.4 Q12 10.6 8.5 9.4 Z',
+          ),
         ],
       ),
       'collar.shirt_collar': TailorGlyph(
@@ -268,8 +280,10 @@ class TailorGlyphs {
         name: 'kurta.cuff.round',
         lines: _sleeveEnd,
         marks: [
-          Accent('M7 13.5 L7 18 Q7 20.6 9.6 20.6 L14.4 20.6 Q17 20.6 17 18 '
-              'L17 13.5 Z'),
+          Accent(
+            'M7 13.5 L7 18 Q7 20.6 9.6 20.6 L14.4 20.6 Q17 20.6 17 18 '
+            'L17 13.5 Z',
+          ),
           Dot(Offset(14.4, 17), 0.95),
         ],
       ),
@@ -323,8 +337,10 @@ class TailorGlyphs {
       'type.pajama': TailorGlyph(
         name: 'shalwar.type.pajama',
         marks: [
-          Accent('M6.2 3 L17.8 3 L17.8 4.6 L18.8 21 L13.2 21 L12 9.6 L10.8 21 '
-              'L5.2 21 L6.2 4.6 Z'),
+          Accent(
+            'M6.2 3 L17.8 3 L17.8 4.6 L18.8 21 L13.2 21 L12 9.6 L10.8 21 '
+            'L5.2 21 L6.2 4.6 Z',
+          ),
           Accent('M6.2 4.6 L17.8 4.6'),
         ],
       ),
@@ -332,8 +348,10 @@ class TailorGlyphs {
         name: 'shalwar.type.trouser',
         lines: ['M9 7 L9 20.4', 'M15 7 L15 20.4', 'M12 4.6 L12 8'],
         marks: [
-          Accent('M6.8 3 L17.2 3 L17.2 4.6 L16.6 21 L13 21 L12 9.2 L11 21 '
-              'L7.4 21 L6.8 4.6 Z'),
+          Accent(
+            'M6.8 3 L17.2 3 L17.2 4.6 L16.6 21 L13 21 L12 9.2 L11 21 '
+            'L7.4 21 L6.8 4.6 Z',
+          ),
           Accent('M6.8 4.6 L17.2 4.6'),
         ],
       ),
@@ -368,8 +386,10 @@ class TailorGlyphs {
           'M16.8 15.4 L16.8 20.6',
         ],
         marks: [
-          Accent('M6 14 L7.2 15.4 L8.4 14 L9.6 15.4 L10.8 14 L12 15.4 L13.2 14 '
-              'L14.4 15.4 L15.6 14 L16.8 15.4 L18 14'),
+          Accent(
+            'M6 14 L7.2 15.4 L8.4 14 L9.6 15.4 L10.8 14 L12 15.4 L13.2 14 '
+            'L14.4 15.4 L15.6 14 L16.8 15.4 L18 14',
+          ),
           Accent('M6 14 L6 20.6 L18 20.6 L18 14'),
         ],
       ),
@@ -384,15 +404,19 @@ class TailorGlyphs {
         name: 'waistcoat.front.curved',
         lines: [_waistcoatUpper, 'M12 11 L12 17.6'],
         marks: [
-          Accent('M6 17 L6 18.6 Q6.6 21 9.6 20.4 Q11.4 19.8 12 17.6 '
-              'Q12.6 19.8 14.4 20.4 Q17.4 21 18 18.6 L18 17'),
+          Accent(
+            'M6 17 L6 18.6 Q6.6 21 9.6 20.4 Q11.4 19.8 12 17.6 '
+            'Q12.6 19.8 14.4 20.4 Q17.4 21 18 18.6 L18 17',
+          ),
         ],
       ),
       'pockets.chest': TailorGlyph(
         name: 'waistcoat.pockets.chest',
         body: [_waistcoat],
         lines: [_waistcoatFront],
-        marks: [Accent('M13.6 11.8 L16.6 12.4 L16.4 13.4 L13.4 12.8 Z', fill: true)],
+        marks: [
+          Accent('M13.6 11.8 L16.6 12.4 L16.4 13.4 L13.4 12.8 Z', fill: true),
+        ],
       ),
       'pockets.side': TailorGlyph(
         name: 'waistcoat.pockets.side',

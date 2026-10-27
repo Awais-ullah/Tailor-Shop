@@ -5,13 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:tailor_app/core/errors/app_failure.dart';
 import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/app_dates.dart';
-import 'package:tailor_app/core/utils/inch_format.dart';
-import 'package:tailor_app/core/utils/money.dart';
-import 'package:tailor_app/core/widgets/adaptive_wrap.dart';
 import 'package:tailor_app/core/widgets/app_snackbar.dart';
 import 'package:tailor_app/core/widgets/state_views.dart';
 import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit.dart';
-import 'package:tailor_app/features/measurements/data/measurement_templates.dart';
 import 'package:tailor_app/features/measurements/data/models/measurement.dart';
 import 'package:tailor_app/features/measurements/presentation/cubit/measurements_cubit.dart';
 import 'package:tailor_app/features/measurements/presentation/screens/measurement_form_screen.dart';
@@ -24,11 +20,8 @@ import 'package:tailor_app/features/orders/presentation/cubit/orders_cubit.dart'
 import 'package:tailor_app/features/orders/presentation/widgets/measurement_attach_dialog.dart';
 import 'package:tailor_app/features/orders/presentation/widgets/order_item_dialog.dart';
 import 'package:tailor_app/features/payments/data/payment_method.dart';
-import 'package:tailor_app/features/payments/presentation/payment_method_ui.dart';
 
 import 'package:tailor_app/core/l10n/app_strings.dart';
-import 'package:tailor_app/features/measurements/presentation/icons/tailor_glyphs.dart';
-import 'package:tailor_app/features/measurements/presentation/icons/tailor_icon.dart';
 import 'package:tailor_app/features/orders/presentation/widgets/order_form_parts.dart';
 
 /// New order: pass [customerId]. Editing: pass [orderId] only.
@@ -254,6 +247,16 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     }
   }
 
+  String? _validateDelivery() {
+    if (_deliveryDate.isBefore(_orderDate)) {
+      return S.current.cannotBeBeforeOrderDate;
+    }
+    if (_deliveryDate.isAfter(AppDates.addDays(_orderDate, 365))) {
+      return S.current.deliveryTooFar;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final customerId = _customerId;
@@ -271,14 +274,12 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
       );
     }
 
-    final customer = context.read<CustomersCubit>().state.customerById(customerId);
-    final total = OrderMoney.total(_items);
-    final textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _isEditing ? S.current.editOrderNumber(_existing!.orderNumber) : S.current.newOrder,
+          _isEditing
+              ? S.current.editOrderNumber(_existing!.orderNumber)
+              : S.current.newOrder,
         ),
       ),
       body: SingleChildScrollView(
@@ -291,171 +292,49 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: context.pal.primarySoft,
-                            child: Text(
-                              customer?.initial ?? '?',
-                              style: TextStyle(
-                                color: context.pal.primary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  customer?.name ?? S.current.unknownCustomer,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                if (customer != null && customer.phone.isNotEmpty)
-                                  Text(
-                                    customer.phone,
-                                    style: TextStyle(
-                                      color: context.pal.slate500,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                  OrderCustomerCard(
+                    customer: context.read<CustomersCubit>().state.customerById(
+                      customerId,
                     ),
                   ),
                   const SizedBox(height: 24),
-                  AdaptiveWrap(
-                    minItemWidth: 220,
-                    children: [
-                      TextFormField(
-                        controller: _orderDateController,
-                        readOnly: true,
-                        onTap: _pickOrderDate,
-                        decoration: InputDecoration(
-                          labelText: S.current.orderDate,
-                          prefixIcon: Icon(Icons.event_outlined),
-                        ),
-                      ),
-                      TextFormField(
-                        controller: _deliveryDateController,
-                        readOnly: true,
-                        onTap: _pickDeliveryDate,
-                        validator: (_) {
-                          if (_deliveryDate.isBefore(_orderDate)) {
-                            return S.current.cannotBeBeforeOrderDate;
-                          }
-                          if (_deliveryDate
-                              .isAfter(AppDates.addDays(_orderDate, 365))) {
-                            return S.current.deliveryTooFar;
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          labelText: S.current.deliveryDate,
-                          prefixIcon: Icon(Icons.local_shipping_outlined),
-                        ),
-                      ),
-                    ],
+                  OrderDateFields(
+                    orderDateController: _orderDateController,
+                    deliveryDateController: _deliveryDateController,
+                    onPickOrderDate: _pickOrderDate,
+                    onPickDeliveryDate: _pickDeliveryDate,
+                    validateDelivery: _validateDelivery,
                   ),
                   const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          S.current.items,
-                          style: textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: _addItem,
-                        icon: const Icon(Icons.add),
-                        label: Text(S.current.addItem),
-                      ),
-                    ],
+                  OrderSectionHeader(
+                    title: S.current.items,
+                    actionLabel: S.current.addItem,
+                    actionIcon: Icons.add,
+                    onAction: _addItem,
                   ),
                   const SizedBox(height: 8),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                        children: [
-                          if (_items.isEmpty)
-                            Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Text(
-                                S.current.noItemsYet,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: context.pal.slate500),
-                              ),
-                            )
-                          else
-                            for (var i = 0; i < _items.length; i++)
-                              OrderItemRow(
-                                item: _items[i],
-                                onTap: () => _editItem(i),
-                                onDelete: () => setState(() => _items.removeAt(i)),
-                              ),
-                          const Divider(),
-                          Padding(
-                            padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 8, 8),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    S.current.total,
-                                    style: TextStyle(fontWeight: FontWeight.w700),
-                                  ),
-                                ),
-                                Text(
-                                  Money.pkr(total),
-                                  style: textTheme.titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.w700),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  OrderItemsCard(
+                    items: _items,
+                    onEdit: _editItem,
+                    onDelete: (i) => setState(() => _items.removeAt(i)),
                   ),
                   if (!_isEditing) ...[
                     const SizedBox(height: 24),
                     OrderAdvanceSection(
                       controller: _advanceController,
                       method: _advanceMethod,
-                      total: total,
+                      total: OrderMoney.total(_items),
                       onMethodChanged: (method) =>
                           setState(() => _advanceMethod = method),
                       onChanged: () => setState(() {}),
                     ),
                   ],
                   const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          S.current.measurements,
-                          style: textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: _attachMeasurements,
-                        icon: const Icon(Icons.straighten_outlined),
-                        label: Text(S.current.attach),
-                      ),
-                    ],
+                  OrderSectionHeader(
+                    title: S.current.measurements,
+                    actionLabel: S.current.attach,
+                    actionIcon: Icons.straighten_outlined,
+                    onAction: _attachMeasurements,
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -463,26 +342,10 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                     style: TextStyle(color: context.pal.slate500, fontSize: 13),
                   ),
                   const SizedBox(height: 8),
-                  if (_attached.isEmpty)
-                    Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text(
-                          S.current.noMeasurementsAttached,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: context.pal.slate500),
-                        ),
-                      ),
-                    )
-                  else
-                    for (var i = 0; i < _attached.length; i++)
-                      Padding(
-                        padding: const EdgeInsetsDirectional.only(bottom: 8),
-                        child: AttachedMeasurementRow(
-                          measurement: _attached[i],
-                          onRemove: () => setState(() => _attached.removeAt(i)),
-                        ),
-                      ),
+                  AttachedMeasurementsList(
+                    attached: _attached,
+                    onRemove: (i) => setState(() => _attached.removeAt(i)),
+                  ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _notesController,
@@ -494,35 +357,17 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                       labelText: S.current.notes,
                       hintText: S.current.orderNotesExample,
                       alignLabelWithHint: true,
-                      prefixIcon: Icon(Icons.notes_outlined),
+                      prefixIcon: const Icon(Icons.notes_outlined),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: _saving ? null : () => context.pop(),
-                          child: Text(S.current.cancel),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: _saving ? null : _save,
-                          child: _saving
-                              ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                              : Text(_isEditing ? S.current.save : S.current.createOrder),
-                        ),
-                      ),
-                    ],
+                  OrderFormActions(
+                    saving: _saving,
+                    saveLabel: _isEditing
+                        ? S.current.save
+                        : S.current.createOrder,
+                    onCancel: () => context.pop(),
+                    onSave: _save,
                   ),
                 ],
               ),

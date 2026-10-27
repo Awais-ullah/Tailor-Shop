@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tailor_app/core/l10n/app_strings.dart';
 import 'package:tailor_app/core/router/app_routes.dart';
@@ -7,31 +6,16 @@ import 'package:tailor_app/core/theme/app_colors.dart';
 import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/utils/money.dart';
-import 'package:tailor_app/core/widgets/adaptive_wrap.dart';
-import 'package:tailor_app/core/widgets/app_snackbar.dart';
-import 'package:tailor_app/core/widgets/fade_slide_in.dart';
-import 'package:tailor_app/core/widgets/stat_tile.dart';
-import 'package:tailor_app/core/widgets/state_views.dart';
-import 'package:tailor_app/features/auth/presentation/cubit/auth_cubit.dart';
-import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit.dart';
-import 'package:tailor_app/features/customers/presentation/cubit/customers_state.dart';
-import 'package:tailor_app/features/customers/presentation/widgets/customer_picker_dialog.dart';
-import 'package:tailor_app/features/dashboard/data/dashboard_summary.dart';
-import 'package:tailor_app/features/measurements/presentation/widgets/garment_picker_sheet.dart';
 import 'package:tailor_app/features/orders/data/models/order.dart';
-import 'package:tailor_app/features/orders/presentation/cubit/orders_cubit.dart';
-import 'package:tailor_app/features/orders/presentation/cubit/orders_state.dart';
 import 'package:tailor_app/features/orders/presentation/widgets/status_chips.dart';
 import 'package:tailor_app/features/payments/data/ledger_calculator.dart';
-import 'package:tailor_app/features/payments/presentation/cubit/payments_cubit.dart';
-import 'package:tailor_app/features/payments/presentation/cubit/payments_state.dart';
-import 'package:tailor_app/features/payments/presentation/widgets/payment_tile.dart';
 
 // Building blocks of the dashboard screen.
 
 /// Teal gradient header with a floating "Collected / Outstanding" card.
 class DashboardHeader extends StatelessWidget {
   const DashboardHeader({
+    super.key,
     required this.topInset,
     required this.greeting,
     required this.date,
@@ -219,6 +203,7 @@ class DashboardHeader extends StatelessWidget {
 /// Square rounded icon button with a one-line label underneath.
 class DashboardQuickAction extends StatelessWidget {
   const DashboardQuickAction({
+    super.key,
     required this.icon,
     required this.label,
     required this.onTap,
@@ -278,6 +263,7 @@ class DashboardQuickAction extends StatelessWidget {
 
 class DashboardSectionCard extends StatelessWidget {
   const DashboardSectionCard({
+    super.key,
     required this.title,
     required this.child,
     this.actionLabel,
@@ -322,7 +308,7 @@ class DashboardSectionCard extends StatelessWidget {
 }
 
 class DashboardEmptyLine extends StatelessWidget {
-  const DashboardEmptyLine(this.text);
+  const DashboardEmptyLine(this.text, {super.key});
 
   final String text;
 
@@ -336,7 +322,11 @@ class DashboardEmptyLine extends StatelessWidget {
 }
 
 class DashboardOrderRow extends StatelessWidget {
-  const DashboardOrderRow({required this.order, required this.customerName});
+  const DashboardOrderRow({
+    super.key,
+    required this.order,
+    required this.customerName,
+  });
 
   final Order order;
   final String customerName;
@@ -359,7 +349,7 @@ class DashboardOrderRow extends StatelessWidget {
                 customerName.isEmpty
                     ? '?'
                     : String.fromCharCode(customerName.runes.first)
-                    .toUpperCase(),
+                          .toUpperCase(),
                 style: TextStyle(
                   color: context.pal.primary,
                   fontWeight: FontWeight.w700,
@@ -379,13 +369,17 @@ class DashboardOrderRow extends StatelessWidget {
                   ),
                   Text(
                     overdue
-                        ? S.current.dueDateOverdue(AppDates.short(order.deliveryDate))
+                        ? S.current.dueDateOverdue(
+                            AppDates.short(order.deliveryDate),
+                          )
                         : S.current.dueDate(AppDates.short(order.deliveryDate)),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 13,
-                      color: overdue ? context.pal.danger : context.pal.slate500,
+                      color: overdue
+                          ? context.pal.danger
+                          : context.pal.slate500,
                       fontWeight: overdue ? FontWeight.w600 : FontWeight.w400,
                     ),
                   ),
@@ -402,7 +396,11 @@ class DashboardOrderRow extends StatelessWidget {
 }
 
 class DashboardBalanceRow extends StatelessWidget {
-  const DashboardBalanceRow({required this.balance, required this.name});
+  const DashboardBalanceRow({
+    super.key,
+    required this.balance,
+    required this.name,
+  });
 
   final CustomerBalance balance;
   final String name;
@@ -442,10 +440,7 @@ class DashboardBalanceRow extends StatelessWidget {
                   ),
                   Text(
                     S.current.openOrdersCount(balance.openOrders),
-                    style: TextStyle(
-                      color: context.pal.slate500,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: context.pal.slate500, fontSize: 13),
                   ),
                 ],
               ),

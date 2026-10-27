@@ -105,7 +105,7 @@ These came out of the architecture review.
 | Data enums imported Flutter UI | **✅ Resolved.** Icons and colours moved to presentation extensions; garment and field icons moved to the measurement icon registry. A test keeps `data/` free of UI imports. |
 | `Money` depended on a global setting | **✅ Resolved.** `Money.pkr(amount, {currency})`. The `S` and controller singletons stay on purpose; see [architecture.md](architecture.md#localisation). |
 | Payment writes spread over two repositories | **✅ Resolved.** `PaymentRepository` owns every batch that changes `totalPaid`, including creating an order with an advance. |
-| Very large screen files | **✅ Mostly resolved.** Sections moved into `presentation/widgets/`. Dashboard 823 → 390 lines, order detail 704 → 427, measurement form 591 → 430. The order form (737 → 536) still has one long `build` method. |
+| Very large screen files | **✅ Resolved.** Sections moved into `presentation/widgets/`. Dashboard 823 → 384 lines, order form 737 → 380, order detail 704 → 444, measurement form 591 → 428. |
 | Untested translations | **✅ Resolved** with `translations_test.dart` and its allowlist. |
 | Full-collection loading hard-wired in four places | **✅ Seam added.** Every watched query comes from `ShopCollections`, which is where a "recent only" window would go. No paging yet, by design. |
 

@@ -76,7 +76,9 @@ void main() {
     double size,
     String file,
   ) async {
-    final longest = rows.map((row) => row.length).reduce((a, b) => a > b ? a : b);
+    final longest = rows
+        .map((row) => row.length)
+        .reduce((a, b) => a > b ? a : b);
     final width = 16 + longest * (size + 6);
     final height = 16 + rows.length * (size + 6);
     await tester.binding.setSurfaceSize(Size(width, height));

@@ -21,9 +21,9 @@ List<String> get _suggestions => [
 
 /// Add a new item, or edit one when [initial] is given.
 Future<OrderItem?> showOrderItemDialog(
-    BuildContext context, {
-      OrderItem? initial,
-    }) {
+  BuildContext context, {
+  OrderItem? initial,
+}) {
   return showDialog<OrderItem>(
     context: context,
     builder: (_) => _OrderItemDialog(initial: initial),
@@ -86,11 +86,14 @@ class _OrderItemDialogState extends State<_OrderItemDialog> {
   @override
   Widget build(BuildContext context) {
     final price = int.tryParse(_priceController.text.trim()) ?? 0;
-    final lineTotal =
-    OrderMoney.lineTotal(OrderItem(name: '', quantity: _quantity, unitPrice: price));
+    final lineTotal = OrderMoney.lineTotal(
+      OrderItem(name: '', quantity: _quantity, unitPrice: price),
+    );
 
     return AlertDialog(
-      title: Text(widget.initial == null ? S.current.addItem : S.current.editItem),
+      title: Text(
+        widget.initial == null ? S.current.addItem : S.current.editItem,
+      ),
       scrollable: true,
       content: SizedBox(
         width: 400,
@@ -104,8 +107,10 @@ class _OrderItemDialogState extends State<_OrderItemDialog> {
                 controller: _nameController,
                 textCapitalization: TextCapitalization.words,
                 inputFormatters: [LengthLimitingTextInputFormatter(60)],
-                validator: (value) =>
-                    Validators.requiredField(value, fieldName: S.current.itemName),
+                validator: (value) => Validators.requiredField(
+                  value,
+                  fieldName: S.current.itemName,
+                ),
                 decoration: InputDecoration(
                   labelText: S.current.item,
                   hintText: S.current.itemExample,
@@ -135,8 +140,9 @@ class _OrderItemDialogState extends State<_OrderItemDialog> {
                   ),
                   IconButton.outlined(
                     tooltip: S.current.decreaseQuantity,
-                    onPressed:
-                    _quantity > 1 ? () => setState(() => _quantity--) : null,
+                    onPressed: _quantity > 1
+                        ? () => setState(() => _quantity--)
+                        : null,
                     icon: const Icon(Icons.remove),
                   ),
                   SizedBox(
@@ -152,8 +158,9 @@ class _OrderItemDialogState extends State<_OrderItemDialog> {
                   ),
                   IconButton.outlined(
                     tooltip: S.current.increaseQuantity,
-                    onPressed:
-                    _quantity < 99 ? () => setState(() => _quantity++) : null,
+                    onPressed: _quantity < 99
+                        ? () => setState(() => _quantity++)
+                        : null,
                     icon: const Icon(Icons.add),
                   ),
                 ],
@@ -170,7 +177,7 @@ class _OrderItemDialogState extends State<_OrderItemDialog> {
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   labelText: S.current.pricePerItem,
-                  prefixText:Money.prefix,
+                  prefixText: Money.prefix,
                 ),
               ),
               const SizedBox(height: 12),

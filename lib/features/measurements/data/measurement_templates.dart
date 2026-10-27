@@ -25,7 +25,7 @@ enum GarmentType {
 }
 
 class MeasurementField {
-  const MeasurementField(this.key, this._label, {String? hint}) : _hint = hint;
+  const MeasurementField(this.key, this._label, {this._hint});
 
   /// Stored in Firestore under `values`. Never change after release.
   final String key;

@@ -55,12 +55,24 @@ void main() {
     ];
 
     final orders = [
-      order(id: 'o1', customerId: 'a', total: 3000,
-          orderDate: DateTime(2026, 10, 1)),
-      order(id: 'o2', customerId: 'b', total: 5000,
-          orderDate: DateTime(2026, 10, 2)),
-      order(id: 'o3', customerId: 'a', total: 4000,
-          orderDate: DateTime(2026, 10, 3)),
+      order(
+        id: 'o1',
+        customerId: 'a',
+        total: 3000,
+        orderDate: DateTime(2026, 10, 1),
+      ),
+      order(
+        id: 'o2',
+        customerId: 'b',
+        total: 5000,
+        orderDate: DateTime(2026, 10, 2),
+      ),
+      order(
+        id: 'o3',
+        customerId: 'a',
+        total: 4000,
+        orderDate: DateTime(2026, 10, 3),
+      ),
       order(
         id: 'o4',
         customerId: 'c',

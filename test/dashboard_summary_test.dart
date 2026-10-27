@@ -70,10 +70,12 @@ void main() {
   });
 
   test('upcoming deliveries: active, due within a week, overdue first', () {
-    expect(
-      summary.upcomingDeliveries.map((o) => o.id),
-      ['late', 'today', 'new', 'ready'],
-    );
+    expect(summary.upcomingDeliveries.map((o) => o.id), [
+      'late',
+      'today',
+      'new',
+      'ready',
+    ]);
   });
 
   test('collected today ignores voided payments and other days', () {
