@@ -53,11 +53,8 @@ class OrderStatusChip extends StatelessWidget {
   final OrderStatus status;
 
   @override
-  Widget build(BuildContext context) => StatusPill(
-    label: status.label,
-    color: status.color,
-    icon: status.icon,
-  );
+  Widget build(BuildContext context) =>
+      StatusPill(label: status.label, color: status.color, icon: status.icon);
 }
 
 class PaymentStatusChip extends StatelessWidget {
@@ -66,9 +63,6 @@ class PaymentStatusChip extends StatelessWidget {
   final PaymentStatus status;
 
   @override
-  Widget build(BuildContext context) => StatusPill(
-    label: status.label,
-    color: status.color,
-    icon: status.icon,
-  );
+  Widget build(BuildContext context) =>
+      StatusPill(label: status.label, color: status.color, icon: status.icon);
 }

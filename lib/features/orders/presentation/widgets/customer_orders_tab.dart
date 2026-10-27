@@ -5,7 +5,7 @@ import 'package:tailor_app/core/router/app_routes.dart';
 import 'package:tailor_app/core/widgets/state_views.dart';
 import 'package:tailor_app/features/orders/presentation/cubit/orders_cubit.dart';
 import 'package:tailor_app/features/orders/presentation/cubit/orders_state.dart';
-import 'package:tailor_app/features/orders/presentation/widgets/order_card.dart';
+import 'package:tailor_app/features/orders/presentation/widgets/order_card.dart';
 import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// The "Orders" tab on a customer's profile.
@@ -37,7 +37,8 @@ class CustomerOrdersTab extends StatelessWidget {
             title: S.current.noOrdersYet,
             message: S.current.customerOrdersAppear,
             actionLabel: S.current.newOrder,
-            onAction: () => context.push(AppRoutes.customerOrderNew(customerId)),
+            onAction: () =>
+                context.push(AppRoutes.customerOrderNew(customerId)),
           );
         }
 

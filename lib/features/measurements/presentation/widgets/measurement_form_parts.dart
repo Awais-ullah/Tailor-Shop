@@ -1,19 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:tailor_app/core/errors/app_failure.dart';
 import 'package:tailor_app/core/l10n/app_strings.dart';
 import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/app_dates.dart';
-import 'package:tailor_app/core/utils/inch_format.dart';
-import 'package:tailor_app/core/widgets/adaptive_wrap.dart';
-import 'package:tailor_app/core/widgets/app_snackbar.dart';
-import 'package:tailor_app/core/widgets/state_views.dart';
-import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:tailor_app/features/measurements/data/measurement_templates.dart';
 import 'package:tailor_app/features/measurements/data/models/measurement.dart';
-import 'package:tailor_app/features/measurements/presentation/cubit/measurements_cubit.dart';
 import 'package:tailor_app/features/measurements/presentation/icons/tailor_glyphs.dart';
 import 'package:tailor_app/features/measurements/presentation/icons/tailor_icon.dart';
 
@@ -21,6 +11,7 @@ import 'package:tailor_app/features/measurements/presentation/icons/tailor_icon.
 
 class MeasurementCustomerHeader extends StatelessWidget {
   const MeasurementCustomerHeader({
+    super.key,
     required this.name,
     required this.initial,
     required this.garment,
@@ -74,7 +65,11 @@ class MeasurementCustomerHeader extends StatelessWidget {
 }
 
 class CopyFromPreviousBanner extends StatelessWidget {
-  const CopyFromPreviousBanner({required this.previous, required this.onCopy});
+  const CopyFromPreviousBanner({
+    super.key,
+    required this.previous,
+    required this.onCopy,
+  });
 
   final Measurement previous;
   final VoidCallback onCopy;
@@ -82,9 +77,12 @@ class CopyFromPreviousBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final updatedAt = previous.updatedAt;
-    final date =
-    updatedAt == null ? S.current.justNow : AppDates.medium(updatedAt);
-    final name = previous.label.isEmpty ? S.current.theLastSet : '"${previous.label}"';
+    final date = updatedAt == null
+        ? S.current.justNow
+        : AppDates.medium(updatedAt);
+    final name = previous.label.isEmpty
+        ? S.current.theLastSet
+        : '"${previous.label}"';
 
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 4, 4),
@@ -111,6 +109,7 @@ class CopyFromPreviousBanner extends StatelessWidget {
 
 class StyleGroupSection extends StatelessWidget {
   const StyleGroupSection({
+    super.key,
     required this.garment,
     required this.group,
     required this.selected,
@@ -129,9 +128,7 @@ class StyleGroupSection extends StatelessWidget {
       children: [
         Text(
           group.multiSelect ? S.current.chooseAny(group.label) : group.label,
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall
+          style: Theme.of(context).textTheme.titleSmall
               ?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 8),
@@ -162,7 +159,7 @@ class StyleGroupSection extends StatelessWidget {
 /// Quick fraction buttons shown above the keyboard while a measurement
 /// field is focused. Phone number keypads have no "/" or "½" key.
 class FractionBar extends StatelessWidget {
-  const FractionBar({required this.onFraction});
+  const FractionBar({super.key, required this.onFraction});
 
   final ValueChanged<int> onFraction;
 

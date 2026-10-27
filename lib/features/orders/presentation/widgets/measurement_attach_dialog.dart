@@ -14,16 +14,14 @@ import 'package:tailor_app/core/l10n/app_strings.dart';
 /// [onNewMeasurement] adds a "New measurement" button: the dialog closes and
 /// the callback starts taking a fresh measurement for the customer.
 Future<List<Measurement>?> showMeasurementAttachDialog(
-    BuildContext context,
-    List<Measurement> available, {
-      VoidCallback? onNewMeasurement,
-    }) {
+  BuildContext context,
+  List<Measurement> available, {
+  VoidCallback? onNewMeasurement,
+}) {
   return showDialog<List<Measurement>>(
     context: context,
-    builder: (_) => _AttachDialog(
-      available: available,
-      onNewMeasurement: onNewMeasurement,
-    ),
+    builder: (_) =>
+        _AttachDialog(available: available, onNewMeasurement: onNewMeasurement),
   );
 }
 
@@ -45,7 +43,9 @@ class _AttachDialogState extends State<_AttachDialog> {
     return template.fields
         .where((field) => measurement.values.containsKey(field.key))
         .take(3)
-        .map((f) => '${f.label} ${InchFormat.format(measurement.values[f.key]!)}')
+        .map(
+          (f) => '${f.label} ${InchFormat.format(measurement.values[f.key]!)}',
+        )
         .join(' · ');
   }
 
@@ -58,48 +58,48 @@ class _AttachDialogState extends State<_AttachDialog> {
         width: 400,
         child: widget.available.isEmpty
             ? Text(
-          S.current.noSavedMeasurementsToAttach,
-          style: TextStyle(color: context.pal.slate700),
-        )
+                S.current.noSavedMeasurementsToAttach,
+                style: TextStyle(color: context.pal.slate700),
+              )
             : Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsetsDirectional.only(bottom: 8),
-              child: Text(
-                S.current.copySavedWithOrderShort,
-                style: TextStyle(color: context.pal.slate500),
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsetsDirectional.only(bottom: 8),
+                    child: Text(
+                      S.current.copySavedWithOrderShort,
+                      style: TextStyle(color: context.pal.slate500),
+                    ),
+                  ),
+                  for (final measurement in widget.available)
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: _selected.contains(measurement.id),
+                      onChanged: (checked) => setState(() {
+                        checked == true
+                            ? _selected.add(measurement.id)
+                            : _selected.remove(measurement.id);
+                      }),
+                      title: Text(
+                        [
+                          measurement.garmentType.label,
+                          if (measurement.label.isNotEmpty) measurement.label,
+                        ].join(' · '),
+                      ),
+                      subtitle: Text(
+                        [
+                          if (measurement.updatedAt != null)
+                            AppDates.medium(measurement.updatedAt!),
+                          _summary(measurement),
+                        ].where((part) => part.isNotEmpty).join(' · '),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
               ),
-            ),
-            for (final measurement in widget.available)
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                value: _selected.contains(measurement.id),
-                onChanged: (checked) => setState(() {
-                  checked == true
-                      ? _selected.add(measurement.id)
-                      : _selected.remove(measurement.id);
-                }),
-                title: Text(
-                  [
-                    measurement.garmentType.label,
-                    if (measurement.label.isNotEmpty) measurement.label,
-                  ].join(' · '),
-                ),
-                subtitle: Text(
-                  [
-                    if (measurement.updatedAt != null)
-                      AppDates.medium(measurement.updatedAt!),
-                    _summary(measurement),
-                  ].where((part) => part.isNotEmpty).join(' · '),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-          ],
-        ),
       ),
       actions: [
         if (widget.onNewMeasurement != null)
@@ -120,13 +120,15 @@ class _AttachDialogState extends State<_AttachDialog> {
             onPressed: _selected.isEmpty
                 ? null
                 : () => Navigator.pop(
-              context,
-              widget.available
-                  .where((m) => _selected.contains(m.id))
-                  .toList(),
-            ),
+                    context,
+                    widget.available
+                        .where((m) => _selected.contains(m.id))
+                        .toList(),
+                  ),
             child: Text(
-              _selected.isEmpty ? S.current.attach : S.current.attachCount(_selected.length),
+              _selected.isEmpty
+                  ? S.current.attach
+                  : S.current.attachCount(_selected.length),
             ),
           ),
       ],

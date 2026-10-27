@@ -19,8 +19,10 @@ void main() {
 
     for (final entity in features.listSync(recursive: true)) {
       if (entity is! File || !entity.path.endsWith('.dart')) continue;
-      if (!entity.path.contains('${Platform.pathSeparator}data'
-          '${Platform.pathSeparator}')) {
+      if (!entity.path.contains(
+        '${Platform.pathSeparator}data'
+        '${Platform.pathSeparator}',
+      )) {
         continue;
       }
 
@@ -36,8 +38,12 @@ void main() {
       }
     }
 
-    expect(problems, isEmpty,
-        reason: 'Move icons, colours and widgets to presentation/:\n'
-            '${problems.join('\n')}');
+    expect(
+      problems,
+      isEmpty,
+      reason:
+          'Move icons, colours and widgets to presentation/:\n'
+          '${problems.join('\n')}',
+    );
   });
 }

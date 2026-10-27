@@ -1,31 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:tailor_app/core/errors/app_failure.dart';
 import 'package:tailor_app/core/l10n/app_strings.dart';
 import 'package:tailor_app/core/theme/app_palette.dart';
-import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/utils/inch_format.dart';
 import 'package:tailor_app/core/utils/money.dart';
 import 'package:tailor_app/core/widgets/adaptive_wrap.dart';
-import 'package:tailor_app/core/widgets/app_snackbar.dart';
-import 'package:tailor_app/core/widgets/state_views.dart';
-import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit.dart';
+import 'package:tailor_app/features/customers/data/models/customer.dart';
 import 'package:tailor_app/features/measurements/data/measurement_templates.dart';
-import 'package:tailor_app/features/measurements/data/models/measurement.dart';
-import 'package:tailor_app/features/measurements/presentation/cubit/measurements_cubit.dart';
 import 'package:tailor_app/features/measurements/presentation/icons/tailor_glyphs.dart';
 import 'package:tailor_app/features/measurements/presentation/icons/tailor_icon.dart';
-import 'package:tailor_app/features/measurements/presentation/screens/measurement_form_screen.dart';
-import 'package:tailor_app/features/measurements/presentation/widgets/garment_picker_sheet.dart';
-import 'package:tailor_app/features/orders/data/models/order.dart';
 import 'package:tailor_app/features/orders/data/models/order_item.dart';
 import 'package:tailor_app/features/orders/data/models/order_measurement.dart';
 import 'package:tailor_app/features/orders/data/order_money.dart';
-import 'package:tailor_app/features/orders/presentation/cubit/orders_cubit.dart';
-import 'package:tailor_app/features/orders/presentation/widgets/measurement_attach_dialog.dart';
-import 'package:tailor_app/features/orders/presentation/widgets/order_item_dialog.dart';
 import 'package:tailor_app/features/payments/data/payment_method.dart';
 import 'package:tailor_app/features/payments/presentation/payment_method_ui.dart';
 
@@ -34,6 +20,7 @@ import 'package:tailor_app/features/payments/presentation/payment_method_ui.dart
 /// Optional money received when the order is booked.
 class OrderAdvanceSection extends StatelessWidget {
   const OrderAdvanceSection({
+    super.key,
     required this.controller,
     required this.method,
     required this.total,
@@ -69,9 +56,7 @@ class OrderAdvanceSection extends StatelessWidget {
       children: [
         Text(
           S.current.advancePaymentOptional,
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall
+          style: Theme.of(context).textTheme.titleSmall
               ?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 4),
@@ -112,7 +97,9 @@ class OrderAdvanceSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsetsDirectional.only(top: 12),
             child: Text(
-              S.current.remainingAfterAdvance(Money.pkr(OrderMoney.remaining(total: total, paid: amount))),
+              S.current.remainingAfterAdvance(
+                Money.pkr(OrderMoney.remaining(total: total, paid: amount)),
+              ),
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: context.pal.slate700,
@@ -126,6 +113,7 @@ class OrderAdvanceSection extends StatelessWidget {
 
 class OrderItemRow extends StatelessWidget {
   const OrderItemRow({
+    super.key,
     required this.item,
     required this.onTap,
     required this.onDelete,
@@ -179,7 +167,11 @@ class OrderItemRow extends StatelessWidget {
 }
 
 class AttachedMeasurementRow extends StatelessWidget {
-  const AttachedMeasurementRow({required this.measurement, required this.onRemove});
+  const AttachedMeasurementRow({
+    super.key,
+    required this.measurement,
+    required this.onRemove,
+  });
 
   final OrderMeasurement measurement;
   final VoidCallback onRemove;
@@ -190,7 +182,9 @@ class AttachedMeasurementRow extends StatelessWidget {
     final summary = template.fields
         .where((field) => measurement.values.containsKey(field.key))
         .take(4)
-        .map((f) => '${f.label} ${InchFormat.format(measurement.values[f.key]!)}')
+        .map(
+          (f) => '${f.label} ${InchFormat.format(measurement.values[f.key]!)}',
+        )
         .join(' · ');
 
     return Card(
@@ -234,6 +228,292 @@ class AttachedMeasurementRow extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Who the order is for: initial, name and phone.
+class OrderCustomerCard extends StatelessWidget {
+  const OrderCustomerCard({super.key, required this.customer});
+
+  /// Null when the customer is no longer on the device.
+  final Customer? customer;
+
+  @override
+  Widget build(BuildContext context) {
+    final customer = this.customer;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: context.pal.primarySoft,
+              child: Text(
+                customer?.initial ?? '?',
+                style: TextStyle(
+                  color: context.pal.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    customer?.name ?? S.current.unknownCustomer,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  if (customer != null && customer.phone.isNotEmpty)
+                    Text(
+                      customer.phone,
+                      style: TextStyle(color: context.pal.slate500),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Order and delivery date fields. Both open a date picker on tap.
+class OrderDateFields extends StatelessWidget {
+  const OrderDateFields({
+    super.key,
+    required this.orderDateController,
+    required this.deliveryDateController,
+    required this.onPickOrderDate,
+    required this.onPickDeliveryDate,
+    required this.validateDelivery,
+  });
+
+  final TextEditingController orderDateController;
+  final TextEditingController deliveryDateController;
+  final VoidCallback onPickOrderDate;
+  final VoidCallback onPickDeliveryDate;
+
+  /// Returns an error message, or null when the delivery date is fine.
+  final String? Function() validateDelivery;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdaptiveWrap(
+      minItemWidth: 220,
+      children: [
+        TextFormField(
+          controller: orderDateController,
+          readOnly: true,
+          onTap: onPickOrderDate,
+          decoration: InputDecoration(
+            labelText: S.current.orderDate,
+            prefixIcon: const Icon(Icons.event_outlined),
+          ),
+        ),
+        TextFormField(
+          controller: deliveryDateController,
+          readOnly: true,
+          onTap: onPickDeliveryDate,
+          validator: (_) => validateDelivery(),
+          decoration: InputDecoration(
+            labelText: S.current.deliveryDate,
+            prefixIcon: const Icon(Icons.local_shipping_outlined),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A bold section title with an action button on the right
+/// ("Items · Add item", "Measurements · Attach").
+class OrderSectionHeader extends StatelessWidget {
+  const OrderSectionHeader({
+    super.key,
+    required this.title,
+    required this.actionLabel,
+    required this.actionIcon,
+    required this.onAction,
+  });
+
+  final String title;
+  final String actionLabel;
+  final IconData actionIcon;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+        OutlinedButton.icon(
+          onPressed: onAction,
+          icon: Icon(actionIcon),
+          label: Text(actionLabel),
+        ),
+      ],
+    );
+  }
+}
+
+/// The order's items with the running total underneath.
+class OrderItemsCard extends StatelessWidget {
+  const OrderItemsCard({
+    super.key,
+    required this.items,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final List<OrderItem> items;
+  final ValueChanged<int> onEdit;
+  final ValueChanged<int> onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          children: [
+            if (items.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  S.current.noItemsYet,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: context.pal.slate500),
+                ),
+              )
+            else
+              for (var i = 0; i < items.length; i++)
+                OrderItemRow(
+                  item: items[i],
+                  onTap: () => onEdit(i),
+                  onDelete: () => onDelete(i),
+                ),
+            const Divider(),
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 8, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      S.current.total,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  Text(
+                    Money.pkr(OrderMoney.total(items)),
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The measurement copies attached to the order, or a note that there
+/// are none yet.
+class AttachedMeasurementsList extends StatelessWidget {
+  const AttachedMeasurementsList({
+    super.key,
+    required this.attached,
+    required this.onRemove,
+  });
+
+  final List<OrderMeasurement> attached;
+  final ValueChanged<int> onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    if (attached.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            S.current.noMeasurementsAttached,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: context.pal.slate500),
+          ),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < attached.length; i++)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(bottom: 8),
+            child: AttachedMeasurementRow(
+              measurement: attached[i],
+              onRemove: () => onRemove(i),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Cancel and save, side by side. Both are disabled while saving.
+class OrderFormActions extends StatelessWidget {
+  const OrderFormActions({
+    super.key,
+    required this.saving,
+    required this.saveLabel,
+    required this.onCancel,
+    required this.onSave,
+  });
+
+  final bool saving;
+  final String saveLabel;
+  final VoidCallback onCancel;
+  final VoidCallback onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: saving ? null : onCancel,
+            child: Text(S.current.cancel),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: FilledButton(
+            onPressed: saving ? null : onSave,
+            child: saving
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Text(saveLabel),
+          ),
+        ),
+      ],
     );
   }
 }

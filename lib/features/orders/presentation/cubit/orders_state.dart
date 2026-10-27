@@ -93,7 +93,8 @@ class OrdersState extends Equatable {
 
     // Work in progress: most urgent delivery first.
     // Finished or cancelled: newest first.
-    final byDelivery = filter == OrderFilter.active ||
+    final byDelivery =
+        filter == OrderFilter.active ||
         (filter.status != null && filter.status!.isActive);
 
     if (byDelivery) {

@@ -22,9 +22,18 @@ void main() {
     });
 
     test('payment status follows the amount paid', () {
-      expect(OrderMoney.paymentStatus(total: 5000, paid: 0), PaymentStatus.unpaid);
-      expect(OrderMoney.paymentStatus(total: 5000, paid: 2000), PaymentStatus.partial);
-      expect(OrderMoney.paymentStatus(total: 5000, paid: 5000), PaymentStatus.paid);
+      expect(
+        OrderMoney.paymentStatus(total: 5000, paid: 0),
+        PaymentStatus.unpaid,
+      );
+      expect(
+        OrderMoney.paymentStatus(total: 5000, paid: 2000),
+        PaymentStatus.partial,
+      );
+      expect(
+        OrderMoney.paymentStatus(total: 5000, paid: 5000),
+        PaymentStatus.paid,
+      );
     });
   });
 
@@ -41,15 +50,18 @@ void main() {
     });
 
     test('rupees and taka keep lakh grouping in other countries too', () {
-      expect(Money.pkr(100000, currency: AppCurrency.byCode('INR')),
-          '₹1,00,000');
-      expect(Money.pkr(250000, currency: AppCurrency.byCode('BDT')),
-          'Tk 2,50,000');
+      expect(
+        Money.pkr(100000, currency: AppCurrency.byCode('INR')),
+        '₹1,00,000',
+      );
+      expect(
+        Money.pkr(250000, currency: AppCurrency.byCode('BDT')),
+        'Tk 2,50,000',
+      );
     });
 
     test('a spaced code prefix for riyals', () {
-      expect(Money.pkr(5000, currency: AppCurrency.byCode('SAR')),
-          'SAR 5,000');
+      expect(Money.pkr(5000, currency: AppCurrency.byCode('SAR')), 'SAR 5,000');
     });
 
     test('defaults to the currency chosen in Settings', () {

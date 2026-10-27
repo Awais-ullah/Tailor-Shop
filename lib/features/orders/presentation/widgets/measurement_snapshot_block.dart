@@ -1,35 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:tailor_app/core/errors/app_failure.dart';
-import 'package:tailor_app/core/l10n/app_strings.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
 import 'package:tailor_app/core/theme/app_palette.dart';
-import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/utils/inch_format.dart';
-import 'package:tailor_app/core/utils/money.dart';
-import 'package:tailor_app/core/widgets/app_snackbar.dart';
-import 'package:tailor_app/core/widgets/state_views.dart';
-import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:tailor_app/features/measurements/data/measurement_templates.dart';
 import 'package:tailor_app/features/measurements/presentation/icons/tailor_glyphs.dart';
 import 'package:tailor_app/features/measurements/presentation/icons/tailor_icon.dart';
-import 'package:tailor_app/features/orders/data/models/order.dart';
 import 'package:tailor_app/features/orders/data/models/order_measurement.dart';
-import 'package:tailor_app/features/orders/data/order_money.dart';
-import 'package:tailor_app/features/orders/data/order_status.dart';
-import 'package:tailor_app/features/orders/presentation/cubit/orders_cubit.dart';
-import 'package:tailor_app/features/orders/presentation/order_status_ui.dart';
-import 'package:tailor_app/features/orders/presentation/widgets/order_summary_rows.dart';
-import 'package:tailor_app/features/orders/presentation/widgets/status_chips.dart';
-import 'package:tailor_app/features/orders/presentation/widgets/status_steps.dart';
-import 'package:tailor_app/features/payments/presentation/widgets/order_payments_section.dart';
 
 // A measurement copy saved inside an order.
 
 /// One attached measurement copy: garment, label, values, styles, notes.
 class MeasurementSnapshotBlock extends StatelessWidget {
-  const MeasurementSnapshotBlock({required this.measurement});
+  const MeasurementSnapshotBlock({super.key, required this.measurement});
 
   final OrderMeasurement measurement;
 
@@ -62,7 +43,10 @@ class MeasurementSnapshotBlock extends StatelessWidget {
         children: [
           Row(
             children: [
-              TailorIcon(TailorGlyphs.garment(measurement.garmentType), size: 22),
+              TailorIcon(
+                TailorGlyphs.garment(measurement.garmentType),
+                size: 22,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -82,8 +66,10 @@ class MeasurementSnapshotBlock extends StatelessWidget {
             children: [
               for (final field in fields)
                 Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: context.pal.surface,
                     borderRadius: BorderRadius.circular(8),

@@ -1,6 +1,5 @@
 // All app text, in every language. Edit this file (and app_strings_ru.dart)
 // directly; test/translations_test.dart checks the tables stay consistent.
-import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/material.dart';
 
 import 'app_strings_ru.dart';

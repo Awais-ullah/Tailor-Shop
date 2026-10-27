@@ -22,7 +22,7 @@ import 'package:tailor_app/core/l10n/app_strings.dart';
 
 class OrdersCubit extends Cubit<OrdersState> {
   OrdersCubit(this._repository, this._payments, {required this.shopId})
-      : super(const OrdersState()) {
+    : super(const OrdersState()) {
     _subscribe();
   }
 
@@ -38,28 +38,30 @@ class OrdersCubit extends Cubit<OrdersState> {
     _subscription?.cancel();
     emit(state.copyWith(status: OrdersStatus.loading, clearError: true));
 
-    _subscription = _repository.watchOrders(shopId).listen(
+    _subscription = _repository
+        .watchOrders(shopId)
+        .listen(
           (items) {
-        final sorted = [...items]
-          ..sort((a, b) => b.orderNumber.compareTo(a.orderNumber));
-        emit(
-          state.copyWith(
-            status: OrdersStatus.loaded,
-            orders: sorted,
-            clearError: true,
-          ),
+            final sorted = [...items]
+              ..sort((a, b) => b.orderNumber.compareTo(a.orderNumber));
+            emit(
+              state.copyWith(
+                status: OrdersStatus.loaded,
+                orders: sorted,
+                clearError: true,
+              ),
+            );
+          },
+          onError: (Object error) {
+            debugPrint('[OrdersCubit] stream error: $error');
+            emit(
+              state.copyWith(
+                status: OrdersStatus.failure,
+                errorMessage: FirestoreErrorMapper.fromError(error),
+              ),
+            );
+          },
         );
-      },
-      onError: (Object error) {
-        debugPrint('[OrdersCubit] stream error: $error');
-        emit(
-          state.copyWith(
-            status: OrdersStatus.failure,
-            errorMessage: FirestoreErrorMapper.fromError(error),
-          ),
-        );
-      },
-    );
   }
 
   void retry() => _subscribe();
@@ -105,16 +107,12 @@ class OrdersCubit extends Cubit<OrdersState> {
       throw AppFailure(S.current.advanceNegative);
     }
     if (advance > total) {
-      throw AppFailure(
-        S.current.advanceTooMuch(Money.pkr(total)),
-      );
+      throw AppFailure(S.current.advanceTooMuch(Money.pkr(total)));
     }
 
     final paid = existing?.totalPaid ?? advance;
     if (total < paid) {
-      throw AppFailure(
-        S.current.totalLessThanPaid(Money.pkr(paid)),
-      );
+      throw AppFailure(S.current.totalLessThanPaid(Money.pkr(paid)));
     }
 
     final paymentId = advance > 0 ? _payments.newId(shopId) : null;

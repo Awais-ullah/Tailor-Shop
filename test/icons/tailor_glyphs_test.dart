@@ -16,14 +16,21 @@ void main() {
     final missing = <String>[];
     for (final type in GarmentType.values) {
       for (final field in MeasurementTemplates.of(type).fields) {
-        if (identical(TailorGlyphs.field(type, field.key), TailorGlyphs.fallback)) {
+        if (identical(
+          TailorGlyphs.field(type, field.key),
+          TailorGlyphs.fallback,
+        )) {
           missing.add('${type.id}: ${field.key}');
         }
       }
     }
-    expect(missing, isEmpty,
-        reason: 'Add these to _fields in tailor_glyphs.dart:\n'
-            '${missing.join('\n')}');
+    expect(
+      missing,
+      isEmpty,
+      reason:
+          'Add these to _fields in tailor_glyphs.dart:\n'
+          '${missing.join('\n')}',
+    );
   });
 
   test('every style option in every template has its own drawing', () {
@@ -38,9 +45,13 @@ void main() {
         }
       }
     }
-    expect(missing, isEmpty,
-        reason: 'Add these to _styles in tailor_glyphs.dart:\n'
-            '${missing.join('\n')}');
+    expect(
+      missing,
+      isEmpty,
+      reason:
+          'Add these to _styles in tailor_glyphs.dart:\n'
+          '${missing.join('\n')}',
+    );
   });
 
   test('unknown ids fall back to the tape measure, never to nothing', () {
@@ -68,12 +79,18 @@ void main() {
     ];
     for (final glyph in glyphs) {
       for (final data in [...glyph.body, ...glyph.lines]) {
-        expect(() => GlyphPaths.parse(data), returnsNormally,
-            reason: '${glyph.name}: $data');
+        expect(
+          () => GlyphPaths.parse(data),
+          returnsNormally,
+          reason: '${glyph.name}: $data',
+        );
       }
       for (final mark in glyph.marks.whereType<Accent>()) {
-        expect(() => GlyphPaths.parse(mark.path), returnsNormally,
-            reason: '${glyph.name}: ${mark.path}');
+        expect(
+          () => GlyphPaths.parse(mark.path),
+          returnsNormally,
+          reason: '${glyph.name}: ${mark.path}',
+        );
       }
     }
   });

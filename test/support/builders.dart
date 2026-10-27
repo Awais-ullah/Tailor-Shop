@@ -45,13 +45,12 @@ Payment payment({
   PaymentMethod method = PaymentMethod.cash,
   required DateTime paidAt,
   bool voided = false,
-}) =>
-    Payment(
-      id: id,
-      orderId: orderId,
-      customerId: customerId,
-      amount: amount,
-      method: method,
-      paidAt: paidAt,
-      isVoided: voided,
-    );
+}) => Payment(
+  id: id,
+  orderId: orderId,
+  customerId: customerId,
+  amount: amount,
+  method: method,
+  paidAt: paidAt,
+  isVoided: voided,
+);
