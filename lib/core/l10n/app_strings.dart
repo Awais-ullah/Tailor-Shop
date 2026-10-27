@@ -319,6 +319,12 @@ class S {
   String get orderTotal => _t('orderTotal');
   String get remaining => _t('remaining');
   String get done => _t('done');
+  String get hideKeyboard => _t('hideKeyboard');
+  String get quickAdd => _t('quickAdd');
+  String get quickAddOrderHint => _t('quickAddOrderHint');
+  String get quickAddCustomerHint => _t('quickAddCustomerHint');
+  String get quickAddMeasurementHint => _t('quickAddMeasurementHint');
+  String get paymentsAndBalances => _t('paymentsAndBalances');
   String get orderUpdated => _t('orderUpdated');
   String get orderCreated => _t('orderCreated');
   String get order => _t('order');
@@ -692,6 +698,12 @@ class S {
       'orderTotal': 'Order total',
       'remaining': 'Remaining',
       'done': 'Done',
+      'hideKeyboard': 'Hide keyboard',
+      'quickAdd': 'Add new',
+      'quickAddOrderHint': 'Pick a customer and start an order',
+      'quickAddCustomerHint': 'Save name, phone and address',
+      'quickAddMeasurementHint': 'Pick a customer and a garment',
+      'paymentsAndBalances': 'Payments and balances',
       'orderUpdated': 'Order updated',
       'orderCreated': 'Order created',
       'order': 'Order',
@@ -1128,6 +1140,12 @@ class S {
       'orderTotal': 'آرڈر کی کل رقم',
       'remaining': 'باقی',
       'done': 'مکمل',
+      'hideKeyboard': 'کی بورڈ چھپائیں',
+      'quickAdd': 'نیا شامل کریں',
+      'quickAddOrderHint': 'گاہک چنیں اور آرڈر شروع کریں',
+      'quickAddCustomerHint': 'نام، فون اور پتہ محفوظ کریں',
+      'quickAddMeasurementHint': 'گاہک اور کپڑا چنیں',
+      'paymentsAndBalances': 'ادائیگیاں اور بقایا',
       'orderUpdated': 'آرڈر اپڈیٹ ہو گیا',
       'orderCreated': 'آرڈر بن گیا',
       'order': 'آرڈر',
@@ -1564,6 +1582,12 @@ class S {
       'orderTotal': 'إجمالي الطلب',
       'remaining': 'المتبقي',
       'done': 'تم',
+      'hideKeyboard': 'إخفاء لوحة المفاتيح',
+      'quickAdd': 'إضافة جديد',
+      'quickAddOrderHint': 'اختر عميلاً وابدأ طلباً',
+      'quickAddCustomerHint': 'احفظ الاسم والهاتف والعنوان',
+      'quickAddMeasurementHint': 'اختر عميلاً وقطعة ملابس',
+      'paymentsAndBalances': 'المدفوعات والأرصدة',
       'orderUpdated': 'تم تحديث الطلب',
       'orderCreated': 'تم إنشاء الطلب',
       'order': 'طلب',
@@ -2003,6 +2027,12 @@ class S {
       'orderTotal': '订单总额',
       'remaining': '剩余',
       'done': '完成',
+      'hideKeyboard': '隐藏键盘',
+      'quickAdd': '新建',
+      'quickAddOrderHint': '选择客户并开始订单',
+      'quickAddCustomerHint': '保存姓名、电话和地址',
+      'quickAddMeasurementHint': '选择客户和服装',
+      'paymentsAndBalances': '付款和余额',
       'orderUpdated': '订单已更新',
       'orderCreated': '订单已创建',
       'order': '订单',
@@ -2436,6 +2466,12 @@ class S {
       'orderTotal': 'ऑर्डर की कुल राशि',
       'remaining': 'शेष',
       'done': 'पूर्ण',
+      'hideKeyboard': 'कीबोर्ड छिपाएँ',
+      'quickAdd': 'नया जोड़ें',
+      'quickAddOrderHint': 'ग्राहक चुनें और ऑर्डर शुरू करें',
+      'quickAddCustomerHint': 'नाम, फ़ोन और पता सहेजें',
+      'quickAddMeasurementHint': 'ग्राहक और कपड़ा चुनें',
+      'paymentsAndBalances': 'भुगतान और बकाया',
       'orderUpdated': 'ऑर्डर अपडेट हो गया',
       'orderCreated': 'ऑर्डर बन गया',
       'order': 'ऑर्डर',

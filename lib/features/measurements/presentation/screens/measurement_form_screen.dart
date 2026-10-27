@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -145,6 +146,16 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
       final ids = source.styles[group.key] ?? const <String>[];
       _styles[group.key] = ids.toSet();
     }
+  }
+
+  /// On phones the bar goes away with the keyboard (Android's Back closes
+  /// the keyboard but keeps the field focused). Desktops have no on-screen
+  /// keyboard, so there it shows whenever a measurement field has focus.
+  bool _showFractionBar(BuildContext context) {
+    if (_focusedKey == null) return false;
+    final isTouch = defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+    return !isTouch || MediaQuery.viewInsetsOf(context).bottom > 0;
   }
 
   /// Sets the fractional part of the focused field: 0 = whole number only.
@@ -420,7 +431,8 @@ class _MeasurementFormScreenState extends State<MeasurementFormScreen> {
               ),
             ),
           ),
-          if (_focusedKey != null) FractionBar(onFraction: _applyFraction),
+          if (_showFractionBar(context))
+            FractionBar(onFraction: _applyFraction),
         ],
       ),
     );

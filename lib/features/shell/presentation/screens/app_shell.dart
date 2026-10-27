@@ -3,9 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:tailor_app/core/responsive/breakpoints.dart';
 import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/features/shell/presentation/widgets/app_bottom_bar.dart';
+import 'package:tailor_app/features/shell/presentation/widgets/quick_add_sheet.dart';
 import 'package:tailor_app/features/sync/presentation/widgets/sync_banner.dart';
 
-import '../../../../core/widgets/app_logo.dart';
+import '../../../../core/widgets/app_logo.dart';
+
 import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// One navigation entry. [branchIndex] must match the order of the
@@ -21,12 +23,11 @@ class _NavItem {
 
 // Branch order: 0 dashboard, 1 customers, 2 measurements, 3 orders,
 // 4 ledger, 5 reports, 6 settings, 7 more
+// Two tabs either side of the centre "+" button; Ledger lives under More.
 List<_NavItem> get _mobileItems => [
   _NavItem(S.current.home, Icons.home_outlined, Icons.home_rounded, 0),
   _NavItem(S.current.customers, Icons.people_outline, Icons.people_rounded, 1),
   _NavItem(S.current.orders, Icons.receipt_long_outlined, Icons.receipt_long, 3),
-  _NavItem(S.current.ledger, Icons.account_balance_wallet_outlined,
-      Icons.account_balance_wallet, 4),
   _NavItem(S.current.more, Icons.more_horiz, Icons.more_horiz, 7),
 ];
 
@@ -61,11 +62,11 @@ class AppShell extends StatelessWidget {
   }
 
   /// The page content with the sync status strip underneath it.
-  Widget _content() {
+  Widget _content({bool showSyncBanner = true}) {
     return Column(
       children: [
         Expanded(child: navigationShell),
-        const SyncBanner(),
+        if (showSyncBanner) const SyncBanner(),
       ],
     );
   }
@@ -76,7 +77,7 @@ class AppShell extends StatelessWidget {
       builder: (context, constraints) {
         switch (Breakpoints.of(constraints.maxWidth)) {
           case ScreenSize.mobile:
-            return _buildMobile();
+            return _buildMobile(context);
           case ScreenSize.tablet:
             return _buildTablet();
           case ScreenSize.desktop:
@@ -86,17 +87,26 @@ class AppShell extends StatelessWidget {
     );
   }
 
-  Widget _buildMobile() {
-    // Measurements / Reports / Settings live under "More" on mobile,
-    // so when one of them is open we highlight "More".
+  Widget _buildMobile(BuildContext context) {
+    // Measurements / Ledger / Reports / Settings live under "More" on
+    // mobile, so when one of them is open we highlight "More".
     final selected = _selectedIndex(_mobileItems, _mobileItems.length - 1);
 
+    // While typing, the bar, the "+" and the sync strip are hidden so the
+    // page reaches the bottom of the screen. Each page's own Scaffold then
+    // shrinks for the keyboard, and anything pinned to its bottom (like the
+    // fraction bar) sits right on top of the keyboard with no gap.
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+
     return Scaffold(
-      // Stops the bottom bar from riding up above the keyboard and eating
-      // space on forms. Each page's own Scaffold handles the keyboard.
+      // The shell never resizes for the keyboard: the page does that.
       resizeToAvoidBottomInset: false,
-      body: _content(),
-      bottomNavigationBar: AppBottomBar(
+      body: _content(showSyncBanner: !keyboardOpen),
+      floatingActionButton: keyboardOpen
+          ? null
+          : QuickAddButton(onPressed: () => showQuickAddSheet(context)),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: keyboardOpen ? null : AppBottomBar(
         selectedIndex: selected,
         onSelected: (i) => _goTo(_mobileItems[i]),
         items: [

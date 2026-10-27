@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tailor_app/core/router/app_routes.dart';
-import 'package:tailor_app/core/theme/app_palette.dart';
+import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// Mobile-only menu for sections that don't fit in the bottom bar.
@@ -15,6 +15,13 @@ class MoreScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _MoreTile(
+            icon: Icons.account_balance_wallet_outlined,
+            label: S.current.ledger,
+            subtitle: S.current.paymentsAndBalances,
+            route: AppRoutes.ledger,
+          ),
+          SizedBox(height: 12),
           _MoreTile(
             icon: Icons.straighten_outlined,
             label: S.current.measurements,
