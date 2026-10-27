@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/features/orders/data/order_status.dart';
+import 'package:tailor_app/features/orders/presentation/order_status_ui.dart';
 
-/// A small tinted label with an icon, used for order and payment status.
+/// A small tinted label, usually with an icon, used for order and payment
+/// status.
 class StatusPill extends StatelessWidget {
   const StatusPill({
     super.key,
     required this.label,
     required this.color,
-    required this.icon,
+    this.icon,
   });
 
   final String label;
   final Color color;
-  final IconData icon;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -27,8 +29,10 @@ class StatusPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 4),
+          ],
           Text(
             label,
             style: TextStyle(

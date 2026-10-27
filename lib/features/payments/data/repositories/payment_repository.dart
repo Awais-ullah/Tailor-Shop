@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
+import 'package:tailor_app/core/data/shop_collections.dart';
 import 'package:tailor_app/features/orders/data/models/order.dart';
 import 'package:tailor_app/features/orders/data/order_money.dart';
 import 'package:tailor_app/features/payments/data/models/payment.dart';
 
-/// The ONLY class that writes payments. Every payment change is ONE
-/// batch that also updates the order, so they can never disagree.
+/// The only class that moves money: it writes payments and the money
+/// fields of orders (totalPaid, remainingAmount, lastPaymentId). Every
+/// change is ONE batch that writes both, so they can never disagree, and
+/// the security rules check each batch.
 class PaymentRepository {
   PaymentRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
@@ -12,20 +15,34 @@ class PaymentRepository {
   final FirebaseFirestore _firestore;
 
   CollectionReference<Map<String, dynamic>> _payments(String shopId) =>
-      _firestore.collection('shops').doc(shopId).collection('payments');
+      ShopCollections.payments(_firestore, shopId);
 
   CollectionReference<Map<String, dynamic>> _orders(String shopId) =>
-      _firestore.collection('shops').doc(shopId).collection('orders');
+      ShopCollections.orders(_firestore, shopId);
 
   String newId(String shopId) => _payments(shopId).doc().id;
 
   /// Live list of every payment in the shop.
   Stream<List<Payment>> watchPayments(String shopId) {
-    return _payments(shopId).snapshots().map(
+    return ShopCollections.watchedPayments(_firestore, shopId).snapshots().map(
           (snapshot) => snapshot.docs
           .map((doc) => Payment.fromMap(doc.id, doc.data()))
           .toList(),
     );
+  }
+
+  /// Creates a new order AND its advance payment in one atomic batch.
+  /// The order must already carry `totalPaid == payment.amount` and
+  /// `lastPaymentId == payment.id`.
+  Future<void> createOrderWithAdvance(
+      String shopId, {
+        required Order order,
+        required Payment payment,
+      }) {
+    final batch = _firestore.batch();
+    batch.set(_orders(shopId).doc(order.id), order.toMap());
+    batch.set(_payments(shopId).doc(payment.id), payment.toMap());
+    return batch.commit();
   }
 
   /// Adds the payment AND moves the order's totals, atomically.

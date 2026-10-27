@@ -17,6 +17,8 @@ import 'package:tailor_app/features/measurements/presentation/widgets/measuremen
 import 'package:tailor_app/core/l10n/app_strings.dart';
 
 import '../../../../core/widgets/fade_slide_in.dart';
+import 'package:tailor_app/features/measurements/presentation/icons/tailor_glyphs.dart';
+import 'package:tailor_app/features/measurements/presentation/icons/tailor_icon.dart';
 
 /// Pick a customer, pick a garment, then open the form.
 Future<void> _startNewMeasurement(BuildContext context) async {
@@ -140,6 +142,7 @@ class _GarmentFilterBar extends StatelessWidget {
                   for (final type in GarmentType.values) ...[
                     const SizedBox(width: 8),
                     ChoiceChip(
+                      avatar: TailorIcon(TailorGlyphs.garment(type), size: 20),
                       label: Text(type.label),
                       selected: state.garmentFilter == type,
                       onSelected: (_) => cubit.setGarmentFilter(type),

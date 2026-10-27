@@ -62,6 +62,8 @@ Tailor shops run on paper slips: a customer's measurements, a delivery date, "he
 - A slim status bar shows *Offline* / *Syncing*, and a dialog appears if the server ever rejects a change made offline
 
 **Everything else**
+- Six languages: English, Urdu, Roman Urdu, Arabic, Chinese and Hindi (Urdu and Arabic right-to-left)
+- Light, dark or system theme, and a choice of ten display currencies (PKR by default)
 - Email/password sign-in with friendly error messages
 - Responsive layouts: bottom bar on phones, navigation rail on tablets, sidebar on desktop
 - Animated splash screen, loading / empty / error states throughout
@@ -139,7 +141,7 @@ Rules live in [`firestore.rules`](firestore.rules): owner-only access, strict fi
 ## Getting started
 
 ### Prerequisites
-- Flutter 3.27 or newer (`flutter doctor` should be clean)
+- A Flutter SDK that bundles Dart 3.13.3 or newer, as required by `pubspec.yaml` (`flutter doctor` should be clean)
 - A Google account for Firebase
 - Node.js (for the Firebase CLI) and the FlutterFire CLI:
 ```bash
@@ -223,7 +225,11 @@ dart run flutter_native_splash:create
 - [ ] Data export and backup
 - [ ] Web build for Linux/desktop browsers
 - [ ] Load only recent history for very large shops
-- [ ] Urdu language and right-to-left layout
+- [x] Urdu language and right-to-left layout
+
+## Documentation
+
+Developer docs live in [`docs/`](docs/README.md): [architecture](docs/architecture.md), [data model and security rules](docs/data-model.md), [development guide](docs/development.md) and a [project review](docs/review.md) of known issues.
 
 ## What I learned
 

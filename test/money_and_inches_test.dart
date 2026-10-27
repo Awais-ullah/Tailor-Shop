@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tailor_app/core/currency/currency_controller.dart';
 import 'package:tailor_app/core/utils/inch_format.dart';
 import 'package:tailor_app/core/utils/money.dart';
 import 'package:tailor_app/features/orders/data/models/order_item.dart';
@@ -29,8 +30,35 @@ void main() {
 
   group('Money', () {
     test('formats rupees with lakh grouping', () {
-      expect(Money.pkr(5000), 'Rs. 5,000');
-      expect(Money.pkr(100000), 'Rs. 1,00,000');
+      const pkr = AppCurrency.pkr;
+      expect(Money.pkr(5000, currency: pkr), 'Rs. 5,000');
+      expect(Money.pkr(100000, currency: pkr), 'Rs. 1,00,000');
+    });
+
+    test('uses western grouping and no space for dollars', () {
+      final usd = AppCurrency.byCode('USD');
+      expect(Money.pkr(100000, currency: usd), r'$100,000');
+    });
+
+    test('rupees and taka keep lakh grouping in other countries too', () {
+      expect(Money.pkr(100000, currency: AppCurrency.byCode('INR')),
+          '₹1,00,000');
+      expect(Money.pkr(250000, currency: AppCurrency.byCode('BDT')),
+          'Tk 2,50,000');
+    });
+
+    test('a spaced code prefix for riyals', () {
+      expect(Money.pkr(5000, currency: AppCurrency.byCode('SAR')),
+          'SAR 5,000');
+    });
+
+    test('defaults to the currency chosen in Settings', () {
+      final controller = CurrencyController.instance;
+      final before = controller.value;
+      addTearDown(() => controller.value = before);
+
+      controller.value = AppCurrency.byCode('GBP');
+      expect(Money.pkr(1200), '£1,200');
     });
   });
 

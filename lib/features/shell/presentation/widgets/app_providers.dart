@@ -63,6 +63,7 @@ class AppProviders extends StatelessWidget {
           BlocProvider<OrdersCubit>(
             create: (context) => OrdersCubit(
               context.read<OrderRepository>(),
+              context.read<PaymentRepository>(),
               shopId: uid,
             ),
           ),
