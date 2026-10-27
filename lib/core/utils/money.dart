@@ -12,12 +12,14 @@ class Money {
   static final NumberFormat _western = NumberFormat.decimalPattern('en_US');
 
   /// Whole units in the chosen currency, e.g. 5000 -> "Rs. 5,000" or "$5,000".
+  /// [currency] defaults to the one chosen in Settings; tests pass it
+  /// explicitly so they don't depend on the device setting.
   /// (The name `pkr` is kept so existing code keeps working.)
-  static String pkr(int amount) {
-    final currency = CurrencyController.instance.value;
+  static String pkr(int amount, {AppCurrency? currency}) {
+    final chosen = currency ?? CurrencyController.instance.value;
     final number =
-    (currency.indianGrouping ? _indian : _western).format(amount);
-    return '${currency.prefix}$number';
+    (chosen.indianGrouping ? _indian : _western).format(amount);
+    return '${chosen.prefix}$number';
   }
 
   /// The text in front of an amount, for input fields: "Rs. ", "$", ...

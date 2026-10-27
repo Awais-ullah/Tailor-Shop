@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:tailor_app/core/theme/app_palette.dart';
-import 'package:tailor_app/features/measurements/data/measurement_templates.dart';
+import 'package:tailor_app/features/measurements/data/measurement_templates.dart';
+
 import 'package:tailor_app/core/l10n/app_strings.dart';
+import 'package:tailor_app/features/measurements/presentation/icons/tailor_glyphs.dart';
+import 'package:tailor_app/features/measurements/presentation/icons/tailor_icon.dart';
 
 /// Bottom sheet asking which garment the measurements are for.
 Future<GarmentType?> showGarmentPicker(BuildContext context) {
@@ -32,7 +35,7 @@ Future<GarmentType?> showGarmentPicker(BuildContext context) {
               for (final type in GarmentType.values)
                 ListTile(
                   minTileHeight: 56,
-                  leading: Icon(type.icon, color: context.pal.primary),
+                  leading: TailorIcon(TailorGlyphs.garment(type), size: 32),
                   title: Text(type.label),
                   trailing:
                   Icon(Icons.chevron_right, color: context.pal.slate500),

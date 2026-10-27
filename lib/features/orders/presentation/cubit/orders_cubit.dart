@@ -15,16 +15,22 @@ import 'package:tailor_app/features/orders/data/order_status.dart';
 import 'package:tailor_app/features/orders/data/repositories/order_repository.dart';
 import 'package:tailor_app/features/orders/presentation/cubit/orders_state.dart';
 import 'package:tailor_app/features/payments/data/models/payment.dart';
-import 'package:tailor_app/features/payments/data/payment_method.dart';
+import 'package:tailor_app/features/payments/data/payment_method.dart';
+import 'package:tailor_app/features/payments/data/repositories/payment_repository.dart';
+
 import 'package:tailor_app/core/l10n/app_strings.dart';
 
 class OrdersCubit extends Cubit<OrdersState> {
-  OrdersCubit(this._repository, {required this.shopId})
+  OrdersCubit(this._repository, this._payments, {required this.shopId})
       : super(const OrdersState()) {
     _subscribe();
   }
 
   final OrderRepository _repository;
+
+  /// Used only for an advance at booking: the order and its first payment
+  /// must be written together.
+  final PaymentRepository _payments;
   final String shopId;
   StreamSubscription<List<Order>>? _subscription;
 
@@ -111,7 +117,7 @@ class OrdersCubit extends Cubit<OrdersState> {
       );
     }
 
-    final paymentId = advance > 0 ? _repository.newPaymentId(shopId) : null;
+    final paymentId = advance > 0 ? _payments.newId(shopId) : null;
 
     final order = Order(
       id: id ?? _repository.newId(shopId),
@@ -143,7 +149,11 @@ class OrdersCubit extends Cubit<OrdersState> {
         paidAt: orderDay,
       );
       await awaitWriteBriefly(
-        _repository.createOrderWithAdvance(shopId, order, payment),
+        _payments.createOrderWithAdvance(
+          shopId,
+          order: order,
+          payment: payment,
+        ),
       );
     } else {
       await awaitWriteBriefly(_repository.createOrder(shopId, order));

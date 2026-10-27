@@ -13,6 +13,9 @@ import 'package:tailor_app/features/customers/presentation/cubit/customers_cubit
 import 'package:tailor_app/features/measurements/data/measurement_templates.dart';
 import 'package:tailor_app/features/measurements/data/models/measurement.dart';
 import 'package:tailor_app/features/measurements/presentation/cubit/measurements_cubit.dart';
+import 'package:tailor_app/features/measurements/presentation/icons/tailor_glyph.dart';
+import 'package:tailor_app/features/measurements/presentation/icons/tailor_glyphs.dart';
+import 'package:tailor_app/features/measurements/presentation/icons/tailor_icon.dart';
 
 import 'package:tailor_app/core/l10n/app_strings.dart';
 
@@ -198,7 +201,10 @@ class MeasurementDetailScreen extends StatelessWidget {
                           children: [
                             for (final field in filledFields)
                               _ValueTile(
-                                icon: field.icon,
+                                glyph: TailorGlyphs.field(
+                                  measurement.garmentType,
+                                  field.key,
+                                ),
                                 label: field.label,
                                 value: InchFormat.format(
                                   measurement.values[field.key]!,
@@ -240,14 +246,24 @@ class MeasurementDetailScreen extends StatelessWidget {
                                   ),
                                 ),
                                 Expanded(
-                                  child: Text(
-                                    measurement.styles[group.key]!
-                                        .map((id) =>
-                                        template.optionLabel(group.key, id))
-                                        .join(', '),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  child: Wrap(
+                                    spacing: 12,
+                                    runSpacing: 6,
+                                    children: [
+                                      for (final id
+                                          in measurement.styles[group.key]!)
+                                        _StyleValue(
+                                          glyph: TailorGlyphs.style(
+                                            measurement.garmentType,
+                                            group.key,
+                                            id,
+                                          ),
+                                          label: template.optionLabel(
+                                            group.key,
+                                            id,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -286,14 +302,39 @@ class MeasurementDetailScreen extends StatelessWidget {
   }
 }
 
+/// One chosen style option: its drawing and its name.
+class _StyleValue extends StatelessWidget {
+  const _StyleValue({required this.glyph, required this.label});
+
+  final TailorGlyph glyph;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TailorIcon(glyph, size: 22),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ValueTile extends StatelessWidget {
   const _ValueTile({
-    required this.icon,
+    required this.glyph,
     required this.label,
     required this.value,
   });
 
-  final IconData icon;
+  final TailorGlyph glyph;
   final String label;
   final String value;
 
@@ -311,7 +352,7 @@ class _ValueTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: context.pal.slate500),
+              TailorIcon(glyph, size: 24),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(

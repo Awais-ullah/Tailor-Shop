@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:tailor_app/core/data/shop_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tailor_app/features/shop/data/models/shop.dart';
 
@@ -10,7 +11,7 @@ class ShopRepository {
   final FirebaseFirestore _firestore;
 
   DocumentReference<Map<String, dynamic>> _shopRef(String shopId) =>
-      _firestore.collection('shops').doc(shopId);
+      ShopCollections.shop(_firestore, shopId);
 
   /// Creates the owner's shop document if it does not exist yet.
   /// Safe to call on every login. Failures (for example offline on the

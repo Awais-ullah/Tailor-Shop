@@ -1,0 +1,3 @@
+tags:
+  # Pixel comparisons; anti-aliasing differs between operating systems.
+  golden:

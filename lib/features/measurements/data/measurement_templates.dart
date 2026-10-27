@@ -1,23 +1,20 @@
 import 'package:tailor_app/core/l10n/app_strings.dart';
-import 'package:flutter/material.dart';
+
+// Icons for garments, fields and styles are drawn in
+// presentation/icons/tailor_glyphs.dart, keyed by the ids below.
 
 enum GarmentType {
-  shirtKurta('shirt_kurta', 'Shirt / Kurta', Icons.checkroom_outlined),
-  shalwarTrouser(
-    'shalwar_trouser',
-    'Shalwar / Trouser',
-    Icons.straighten_outlined,
-  ),
-  waistcoat('waistcoat', 'Waistcoat', Icons.dry_cleaning_outlined);
+  shirtKurta('shirt_kurta', 'Shirt / Kurta'),
+  shalwarTrouser('shalwar_trouser', 'Shalwar / Trouser'),
+  waistcoat('waistcoat', 'Waistcoat');
 
-  const GarmentType(this.id, this._label, this.icon);
+  const GarmentType(this.id, this._label);
 
   /// Stored in Firestore. Never change these strings.
   final String id;
   final String _label;
 
   String get label => S.current.dyn('garment.$id', _label);
-  final IconData icon;
 
   static GarmentType? fromId(String? id) {
     for (final type in GarmentType.values) {
@@ -39,40 +36,6 @@ class MeasurementField {
 
   /// Roman Urdu hint shown in the form (hidden when the app is in Urdu).
   String? get hint => S.current.dynOrNull('hint.$key', _hint);
-
-  /// Icon shown next to this field in the form and on the detail screen.
-  IconData get icon {
-    switch (key) {
-      case 'length':
-        return Icons.height;
-      case 'shoulder':
-        return Icons.accessibility_new;
-      case 'chest':
-        return Icons.favorite_outline;
-      case 'waist':
-        return Icons.circle_outlined;
-      case 'hip':
-        return Icons.swap_horiz;
-      case 'daman':
-        return Icons.vertical_align_bottom;
-      case 'sleeve':
-        return Icons.pan_tool_outlined;
-      case 'armhole':
-        return Icons.adjust;
-      case 'collar':
-        return Icons.person_outline;
-      case 'cuff':
-        return Icons.watch_outlined;
-      case 'thigh':
-        return Icons.directions_walk;
-      case 'knee':
-        return Icons.airline_seat_legroom_normal;
-      case 'bottom':
-        return Icons.keyboard_double_arrow_down;
-      default:
-        return Icons.straighten_outlined;
-    }
-  }
 }
 
 class StyleOption {

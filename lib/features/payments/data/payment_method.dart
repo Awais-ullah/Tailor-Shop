@@ -1,12 +1,13 @@
 import 'package:tailor_app/core/l10n/app_strings.dart';
-import 'package:flutter/material.dart';
+
+// Icons for these live in presentation/payment_method_ui.dart.
 
 enum PaymentMethod {
-  cash('cash', 'Cash', Icons.payments_outlined),
-  bank('bank', 'Bank', Icons.account_balance_outlined),
-  other('other', 'Other', Icons.more_horiz);
+  cash('cash', 'Cash'),
+  bank('bank', 'Bank'),
+  other('other', 'Other');
 
-  const PaymentMethod(this.id, this._label, this.icon);
+  const PaymentMethod(this.id, this._label);
 
   /// Stored in Firestore. Never change these strings.
   final String id;
@@ -14,7 +15,6 @@ enum PaymentMethod {
 
   /// Translated name (falls back to the English text).
   String get label => S.current.dyn('method.$id', _label);
-  final IconData icon;
 
   static PaymentMethod fromId(String? id) {
     for (final method in PaymentMethod.values) {

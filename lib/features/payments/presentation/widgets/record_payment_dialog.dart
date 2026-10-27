@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/utils/money.dart';
 import 'package:tailor_app/features/payments/data/payment_method.dart';
+import 'package:tailor_app/features/payments/presentation/payment_method_ui.dart';
 
 import 'package:tailor_app/core/l10n/app_strings.dart';
 

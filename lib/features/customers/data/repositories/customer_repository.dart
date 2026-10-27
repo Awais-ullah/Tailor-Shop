@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:tailor_app/core/data/shop_collections.dart';
 import 'package:tailor_app/features/customers/data/models/customer.dart';
 
 /// The ONLY class that reads or writes customer documents.
@@ -10,7 +11,7 @@ class CustomerRepository {
   final FirebaseFirestore _firestore;
 
   CollectionReference<Map<String, dynamic>> _collection(String shopId) =>
-      _firestore.collection('shops').doc(shopId).collection('customers');
+      ShopCollections.customers(_firestore, shopId);
 
   /// Generated on the device, so it works offline and retries can never
   /// create duplicates.
@@ -19,7 +20,7 @@ class CustomerRepository {
   /// Live list of every customer, sorted by name. Updates instantly when
   /// data changes locally or on the server.
   Stream<List<Customer>> watchCustomers(String shopId) {
-    return _collection(shopId).orderBy('nameLower').snapshots().map(
+    return ShopCollections.watchedCustomers(_firestore, shopId).snapshots().map(
           (snapshot) => snapshot.docs
           .map((doc) => Customer.fromMap(doc.id, doc.data()))
           .toList(),

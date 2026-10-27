@@ -3,8 +3,11 @@ import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/theme/app_palette.dart';
 import 'package:tailor_app/core/utils/inch_format.dart';
 import 'package:tailor_app/features/measurements/data/measurement_templates.dart';
-import 'package:tailor_app/features/measurements/data/models/measurement.dart';
+import 'package:tailor_app/features/measurements/data/models/measurement.dart';
+
 import 'package:tailor_app/core/l10n/app_strings.dart';
+import 'package:tailor_app/features/measurements/presentation/icons/tailor_glyphs.dart';
+import 'package:tailor_app/features/measurements/presentation/icons/tailor_icon.dart';
 
 /// One measurement set in a list. Pass [customerName] on the global
 /// list (where the customer isn't obvious); leave it null on a
@@ -61,10 +64,11 @@ class MeasurementCard extends StatelessWidget {
                   color: context.pal.primarySoft,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  measurement.garmentType.icon,
-                  color: context.pal.primary,
-                  size: 22,
+                child: Center(
+                  child: TailorIcon(
+                    TailorGlyphs.garment(measurement.garmentType),
+                    size: 30,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),

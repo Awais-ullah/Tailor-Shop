@@ -4,6 +4,7 @@ import 'package:tailor_app/core/utils/app_dates.dart';
 import 'package:tailor_app/core/utils/money.dart';
 import 'package:tailor_app/features/orders/presentation/widgets/status_chips.dart';
 import 'package:tailor_app/features/payments/data/models/payment.dart';
+import 'package:tailor_app/features/payments/presentation/payment_method_ui.dart';
 import 'package:tailor_app/core/l10n/app_strings.dart';
 
 /// One payment line. [subtitleExtra] adds context such as "#12" or a

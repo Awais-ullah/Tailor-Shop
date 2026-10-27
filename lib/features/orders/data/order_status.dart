@@ -1,21 +1,17 @@
 import 'package:tailor_app/core/l10n/app_strings.dart';
-import 'package:flutter/material.dart';
-import 'package:tailor_app/core/theme/app_colors.dart';
+
+// Icons and colours for these live in presentation/order_status_ui.dart,
+// so the stored ids never depend on how they are drawn.
 
 enum OrderStatus {
-  booked('booked', 'Booked', Icons.event_note_outlined, AppColors.slate500),
-  cutting('cutting', 'Cutting', Icons.content_cut, AppColors.warning),
-  stitching(
-    'stitching',
-    'Stitching',
-    Icons.design_services_outlined,
-    AppColors.info,
-  ),
-  ready('ready', 'Ready', Icons.check_circle_outline, AppColors.success),
-  delivered('delivered', 'Delivered', Icons.task_alt, AppColors.primary),
-  cancelled('cancelled', 'Cancelled', Icons.cancel_outlined, AppColors.danger);
+  booked('booked', 'Booked'),
+  cutting('cutting', 'Cutting'),
+  stitching('stitching', 'Stitching'),
+  ready('ready', 'Ready'),
+  delivered('delivered', 'Delivered'),
+  cancelled('cancelled', 'Cancelled');
 
-  const OrderStatus(this.id, this._label, this.icon, this.color);
+  const OrderStatus(this.id, this._label);
 
   /// Stored in Firestore. Never change these strings.
   final String id;
@@ -23,8 +19,6 @@ enum OrderStatus {
 
   /// Translated name (falls back to the English text).
   String get label => S.current.dyn('order.$id', _label);
-  final IconData icon;
-  final Color color;
 
   /// Still being worked on (not finished, not cancelled).
   bool get isActive =>
@@ -59,11 +53,11 @@ enum OrderStatus {
 }
 
 enum PaymentStatus {
-  unpaid('unpaid', 'Unpaid', Icons.radio_button_unchecked, AppColors.danger),
-  partial('partial', 'Partial', Icons.timelapse, AppColors.warning),
-  paid('paid', 'Paid', Icons.check_circle, AppColors.success);
+  unpaid('unpaid', 'Unpaid'),
+  partial('partial', 'Partial'),
+  paid('paid', 'Paid');
 
-  const PaymentStatus(this.id, this._label, this.icon, this.color);
+  const PaymentStatus(this.id, this._label);
 
   /// Stored in Firestore. Never change these strings.
   final String id;
@@ -71,8 +65,6 @@ enum PaymentStatus {
 
   /// Translated name (falls back to the English text).
   String get label => S.current.dyn('pay.$id', _label);
-  final IconData icon;
-  final Color color;
 
   static PaymentStatus fromId(String? id) {
     for (final status in PaymentStatus.values) {
